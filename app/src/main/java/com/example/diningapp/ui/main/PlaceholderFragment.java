@@ -1,19 +1,34 @@
 package com.example.diningapp.ui.main;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
-import androidx.annotation.Nullable;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.diningapp.R;
 import com.example.diningapp.databinding.FragmentMainBinding;
+import com.example.diningapp.util.DiningHallHour;
+import com.example.diningapp.util.FoodItem;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -21,6 +36,7 @@ import com.example.diningapp.databinding.FragmentMainBinding;
 public class PlaceholderFragment extends Fragment {
 
     private static final String ARG_SECTION_NUMBER = "section_number";
+    ObjectMapper mapper = new ObjectMapper();
 
     private PageViewModel pageViewModel;
     private FragmentMainBinding binding;
@@ -53,10 +69,57 @@ public class PlaceholderFragment extends Fragment {
         View root = binding.getRoot();
 
         final TextView textView = binding.sectionLabel;
+        final ListView listView = binding.mobileList;
+        List<DiningHallHour> hallHourList = new ArrayList<>();
+        List<FoodItem> menuList = new ArrayList<>();
+
+        try {
+            String hoursJsonString = loadJSONFromAsset(this.getContext(), "hours.json");
+            hallHourList = mapper.readValue(hoursJsonString, new TypeReference<List<DiningHallHour>>() {});
+            String menuJsonString = loadJSONFromAsset(this.getContext(), "menu.json");
+            menuList = mapper.readValue(menuJsonString, new TypeReference<List<FoodItem>>() {});
+            menuList = menuList.subList(0, 50);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        List<Map<String, String>> hoursData = new ArrayList<>();
+        for(DiningHallHour diningHallHour: hallHourList) {
+            Map<String, String> map = new HashMap<>(2);
+            map.put("First Line", diningHallHour.getDiningHall());
+            map.put("Second Line",diningHallHour.getHours());
+            hoursData.add(map);
+        }
+
+        List<Map<String, String>> menuData = new ArrayList<>();
+        for(FoodItem foodItem: menuList) {
+            Map<String, String> map = new HashMap<>(3);
+            map.put("First Line", foodItem.getName());
+            map.put("Second Line",foodItem.getDescription());
+            menuData.add(map);
+        }
+
+        SimpleAdapter simpleAdapter= new SimpleAdapter(this.getContext(), menuData,
+                android.R.layout.simple_list_item_2,
+                new String[] {"First Line", "Second Line" },
+                new int[] {android.R.id.text1, android.R.id.text2 });
+
+        SimpleAdapter simpleAdapter2= new SimpleAdapter(this.getContext(), hoursData,
+                android.R.layout.simple_list_item_2,
+                new String[] {"First Line", "Second Line"},
+                new int[] {android.R.id.text1, android.R.id.text2 });
+
+
         pageViewModel.getText().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(@Nullable String s) {
-                textView.setText(s);
+                // textView.setText(s);
+                if (StringUtils.equals(s, "Hello world from section: 2")) {
+                    listView.setAdapter(simpleAdapter);
+                } else {
+                    listView.setAdapter(simpleAdapter2);
+                }
             }
         });
         return root;
@@ -66,5 +129,27 @@ public class PlaceholderFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+    }
+
+    /**
+     * The helper function reading json file from assets
+     * @param context
+     * @param fileName the name of json file in assets
+     * @return a string of file
+     */
+    public String loadJSONFromAsset(Context context, String fileName) {
+        String json;
+        try {
+            InputStream is = context.getAssets().open(fileName);
+            int size = is.available();
+            byte[] buffer = new byte[size];
+            is.read(buffer);
+            is.close();
+            json = new String(buffer, "UTF-8");
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+        return json;
     }
 }

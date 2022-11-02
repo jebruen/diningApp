@@ -19,6 +19,8 @@ public class FoodItem {
         this.otherInfo = otherInfo;
     }
 
+    public FoodItem() {}
+
     public String getName() {
         return name;
     }

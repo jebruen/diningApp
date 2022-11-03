@@ -7,7 +7,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,7 +14,6 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.diningapp.MainActivity;
 import com.example.diningapp.database.DBHandler;
 import com.example.diningapp.databinding.FragmentMainBinding;
 import com.example.diningapp.util.DiningHallHour;
@@ -69,20 +67,21 @@ public class PlaceholderFragment extends Fragment {
             @NonNull LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
 
-        binding = FragmentMainBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
-
-        final TextView textView = binding.sectionLabel;
-        final ListView listView = binding.mobileList;
+        binding                           = FragmentMainBinding.inflate(inflater, container, false);
+        dbHandler                         = new DBHandler(this.getContext());
+        View                 root         = binding.getRoot();
         List<DiningHallHour> hallHourList = new ArrayList<>();
-        List<FoodItem> menuList = new ArrayList<>();
+        List<FoodItem>       menuList;
+
+        final ListView listView = binding.mobileList;
+
 
         try {
             String hoursJsonString = loadJSONFromAsset(this.getContext(), "hours.json");
-            hallHourList = mapper.readValue(hoursJsonString, new TypeReference<List<DiningHallHour>>() {});
-            // String menuJsonString = loadJSONFromAsset(this.getContext(), "menu.json");
-            // menuList = mapper.readValue(menuJsonString, new TypeReference<List<FoodItem>>() {});
-            // menuList = menuList.subList(0, 50);
+            hallHourList           = mapper.readValue(hoursJsonString, new TypeReference<List<DiningHallHour>>() {});
+            String menuJsonString  = loadJSONFromAsset(this.getContext(), "menu.json");
+            menuList               = mapper.readValue(menuJsonString, new TypeReference<List<FoodItem>>() {});
+            dbHandler.init(menuList);
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -97,23 +96,14 @@ public class PlaceholderFragment extends Fragment {
         }
 
         List<Map<String, String>> menuData = new ArrayList<>();
-        dbHandler = new DBHandler(this.getContext());
+
         List<FoodItem> foodItems =  dbHandler.getAllFoodItem();
         Collections.reverse(foodItems);
         for(FoodItem foodItem: foodItems) {
-            Map<String, String> map = new HashMap<>(3);
+            Map<String, String> map = new HashMap<>(2);
             map.put("First Line", foodItem.getName());
             map.put("Second Line",foodItem.getDescription());
             menuData.add(map);
-//            dbHandler.addFoodItem(
-//                    foodItem.getName(),
-//                    foodItem.getLabel(),
-//                    foodItem.getDescription(),
-//                    foodItem.getAmount(),
-//                    foodItem.getType(),
-//                    foodItem.getDiningHall(),
-//                    foodItem.getOtherInfo()
-//            );
         }
 
         SimpleAdapter simpleAdapter= new SimpleAdapter(this.getContext(), menuData,
@@ -125,7 +115,6 @@ public class PlaceholderFragment extends Fragment {
                 android.R.layout.simple_list_item_2,
                 new String[] {"First Line", "Second Line"},
                 new int[] {android.R.id.text1, android.R.id.text2 });
-
 
         pageViewModel.getText().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override

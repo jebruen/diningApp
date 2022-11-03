@@ -31,12 +31,7 @@ public class MainActivity extends AppCompatActivity {
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
-        // initializing all our variables.
-
-
         dbHandler = new DBHandler(MainActivity.this);
-
 
         SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this, getSupportFragmentManager());
         ViewPager viewPager = binding.viewPager;
@@ -62,7 +57,6 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = getLayoutInflater().inflate(R.layout.dialog, null);
 
-        // EditText name = view.findViewById(R.id.nameEdit);
         EditText name        = view.findViewById(R.id.nameEdit);
         EditText label       = view.findViewById(R.id.idEdtLabel);
         EditText description = view.findViewById(R.id.idEdtDescription);

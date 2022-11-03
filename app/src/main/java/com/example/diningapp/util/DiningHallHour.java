@@ -1,7 +1,13 @@
 package com.example.diningapp.util;
 
+
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
+@Entity(tableName = "diningHallHour")
 public class DiningHallHour {
     private String hours;
+    @PrimaryKey
     private String diningHall;
     private String date;
 

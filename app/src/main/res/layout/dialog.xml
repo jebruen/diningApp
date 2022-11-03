@@ -2,12 +2,15 @@
 <!--not sure about width in the outermost relative layout -->
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <RelativeLayout
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:orientation="vertical"
         android:padding="10dp">
 
         <EditText
@@ -15,8 +18,62 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Name"
-            android:textSize="20dp"/>
+            android:layout_margin="10dp"
+            android:textSize="20dp" />
 
+        <!--Edit text to enter course name-->
+        <EditText
+            android:id="@+id/idEdtLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:textSize="20dp"
+            android:hint="Label" />
 
-    </RelativeLayout>
+        <!--edit text to enter course duration-->
+        <EditText
+            android:id="@+id/idEdtDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:textSize="20dp"
+            android:hint="Description" />
+
+        <!--edit text to display course tracks-->
+        <EditText
+            android:id="@+id/idEdtAmount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:textSize="20dp"
+            android:hint="Amount" />
+
+        <!--edit text for course description-->
+        <EditText
+            android:id="@+id/idEditType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:textSize="20dp"
+            android:hint="Type" />
+
+        <!--edit text for course description-->
+        <EditText
+            android:id="@+id/idEditDiningHall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:textSize="20dp"
+            android:hint="Dining Hall" />
+
+        <!--edit text for course description-->
+        <EditText
+            android:id="@+id/idEditOtherInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:textSize="20dp"
+            android:hint="Other Info" />
+
+    </LinearLayout>
 </RelativeLayout>

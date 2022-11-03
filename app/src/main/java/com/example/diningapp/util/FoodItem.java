@@ -86,7 +86,7 @@ public class FoodItem {
         private String diningHall;
         private String otherInfo;
 
-        private FoodItemBuilder() {
+        public FoodItemBuilder() {
         }
 
         public static FoodItemBuilder aFoodItem() {

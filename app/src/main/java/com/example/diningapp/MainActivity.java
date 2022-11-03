@@ -12,6 +12,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
 
+import com.example.diningapp.database.DBHandler;
 import com.example.diningapp.databinding.ActivityMainBinding;
 import com.example.diningapp.ui.main.SectionsPagerAdapter;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -20,8 +21,9 @@ import com.google.android.material.tabs.TabLayout;
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
-    AlertDialog dialog;
-    LinearLayout layout;
+    private DBHandler           dbHandler;
+            AlertDialog dialog;
+            LinearLayout layout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +31,12 @@ public class MainActivity extends AppCompatActivity {
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        // initializing all our variables.
+
+
+        dbHandler = new DBHandler(MainActivity.this);
+
 
         SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this, getSupportFragmentManager());
         ViewPager viewPager = binding.viewPager;
@@ -39,7 +47,6 @@ public class MainActivity extends AppCompatActivity {
         //layout = binding.container;
         layout = findViewById(R.id.container);
         buildDialog();
-
 
         add.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -55,14 +62,41 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = getLayoutInflater().inflate(R.layout.dialog, null);
 
-        EditText name = view.findViewById(R.id.nameEdit);
+        // EditText name = view.findViewById(R.id.nameEdit);
+        EditText name        = view.findViewById(R.id.nameEdit);
+        EditText label       = view.findViewById(R.id.idEdtLabel);
+        EditText description = view.findViewById(R.id.idEdtDescription);
+        EditText amount      = view.findViewById(R.id.idEdtAmount);
+        EditText type        = view.findViewById(R.id.idEditType);
+        EditText diningHall  = view.findViewById(R.id.idEditDiningHall);
+        EditText otherInfo   = view.findViewById(R.id.idEditOtherInfo);
 
         builder.setView(view);
-        builder.setTitle("Enter name")
+        builder.setTitle("Enter Food Item")
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         addCard(name.getText().toString());
+                        // below line is to get data from all edit text fields.
+                        String newname          = name.getText().toString();
+                        String newlabel         = label.getText().toString();
+                        String newdescription   = description.getText().toString();
+                        String newamount        = amount.getText().toString();
+                        String newtype          = type.getText().toString();
+                        String newdiningHall    = diningHall.getText().toString();
+                        String newotherInfo     = otherInfo .getText().toString();
+                        dbHandler.addFoodItem(
+                                newname,
+                                newlabel,
+                                newdescription,
+                                newamount,
+                                newtype,
+                                newdiningHall,
+                                newotherInfo
+                        );
+
+                        finish();
+                        startActivity(getIntent());
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

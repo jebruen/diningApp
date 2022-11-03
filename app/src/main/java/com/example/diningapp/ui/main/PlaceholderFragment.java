@@ -15,6 +15,8 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.diningapp.MainActivity;
+import com.example.diningapp.database.DBHandler;
 import com.example.diningapp.databinding.FragmentMainBinding;
 import com.example.diningapp.util.DiningHallHour;
 import com.example.diningapp.util.FoodItem;
@@ -26,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,8 +41,9 @@ public class PlaceholderFragment extends Fragment {
     private static final String ARG_SECTION_NUMBER = "section_number";
     ObjectMapper mapper = new ObjectMapper();
 
-    private PageViewModel pageViewModel;
+    private PageViewModel       pageViewModel;
     private FragmentMainBinding binding;
+    private DBHandler           dbHandler;
 
     public static PlaceholderFragment newInstance(int index) {
         PlaceholderFragment fragment = new PlaceholderFragment();
@@ -76,9 +80,9 @@ public class PlaceholderFragment extends Fragment {
         try {
             String hoursJsonString = loadJSONFromAsset(this.getContext(), "hours.json");
             hallHourList = mapper.readValue(hoursJsonString, new TypeReference<List<DiningHallHour>>() {});
-            String menuJsonString = loadJSONFromAsset(this.getContext(), "menu.json");
-            menuList = mapper.readValue(menuJsonString, new TypeReference<List<FoodItem>>() {});
-            menuList = menuList.subList(0, 50);
+            // String menuJsonString = loadJSONFromAsset(this.getContext(), "menu.json");
+            // menuList = mapper.readValue(menuJsonString, new TypeReference<List<FoodItem>>() {});
+            // menuList = menuList.subList(0, 50);
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -93,11 +97,23 @@ public class PlaceholderFragment extends Fragment {
         }
 
         List<Map<String, String>> menuData = new ArrayList<>();
-        for(FoodItem foodItem: menuList) {
+        dbHandler = new DBHandler(this.getContext());
+        List<FoodItem> foodItems =  dbHandler.getAllFoodItem();
+        Collections.reverse(foodItems);
+        for(FoodItem foodItem: foodItems) {
             Map<String, String> map = new HashMap<>(3);
             map.put("First Line", foodItem.getName());
             map.put("Second Line",foodItem.getDescription());
             menuData.add(map);
+//            dbHandler.addFoodItem(
+//                    foodItem.getName(),
+//                    foodItem.getLabel(),
+//                    foodItem.getDescription(),
+//                    foodItem.getAmount(),
+//                    foodItem.getType(),
+//                    foodItem.getDiningHall(),
+//                    foodItem.getOtherInfo()
+//            );
         }
 
         SimpleAdapter simpleAdapter= new SimpleAdapter(this.getContext(), menuData,

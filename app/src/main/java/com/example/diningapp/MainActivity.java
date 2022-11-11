@@ -25,27 +25,48 @@ import com.example.diningapp.databinding.ActivityMainBinding;
 import java.text.CollationElementIterator;
 
 public class MainActivity extends AppCompatActivity {
-
-    private ActivityMainBinding binding;
-    AlertDialog dialog;
-    LinearLayout layout;
+    TabLayout tabLayout;
+    ViewPager viewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        tabLayout = findViewById(R.id.tabs);
+        viewPager = findViewById(R.id.view_pager);
+        tabLayout.addTab(tabLayout.newTab().setText("Home"));
+        tabLayout.addTab(tabLayout.newTab().setText("Hours"));
+        tabLayout.addTab(tabLayout.newTab().setText("Food"));
 
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+        tabLayout.setTabGravity(tabLayout.GRAVITY_FILL);
+        final MyAdapter adapter = new MyAdapter(this, getSupportFragmentManager(), tabLayout.getTabCount());
+        viewPager.setAdapter(adapter);
+        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                viewPager.setCurrentItem(tab.getPosition());
+            }
 
-        SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this, getSupportFragmentManager());
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
+
+
+        /*SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this, getSupportFragmentManager());
         ViewPager viewPager = binding.viewPager;
         viewPager.setAdapter(sectionsPagerAdapter);
         TabLayout tabs = binding.tabs;
         tabs.setupWithViewPager(viewPager);
         FloatingActionButton add = binding.add;
-        //layout = binding.container;
-        layout = findViewById(R.id.container);
-        buildDialog();
+
 
 
         add.setOnClickListener(new View.OnClickListener() {
@@ -56,9 +77,9 @@ public class MainActivity extends AppCompatActivity {
                 dialog.show();
             }
         });
-    }
+    } */
 
-    private void buildDialog() {
+   /* private void buildDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = getLayoutInflater().inflate(R.layout.dialog, null);
 
@@ -79,9 +100,9 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
         dialog = builder.create();
-        }
+        } */
 
-    private void addCard(String toString) {
+   /* private void addCard(String toString) {
         View view = getLayoutInflater().inflate(R.layout.card, null);
         TextView nameView = view.findViewById(R.id.name);
         Button delete = view.findViewById(R.id.delete);
@@ -94,5 +115,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         layout.addView(view);
+    }*/
     }
 }

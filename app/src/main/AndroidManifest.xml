@@ -27,6 +27,86 @@
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
+
+        <activity
+            android:name=".DietrickActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.DiningApp.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+
+            </intent-filter>
+
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+
+        <activity
+            android:name=".TurnerActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.DiningApp.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+
+            </intent-filter>
+
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+
+        <activity
+            android:name=".SquiresActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.DiningApp.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+
+            </intent-filter>
+
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+
+        <activity
+            android:name=".OwensActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.DiningApp.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+
+            </intent-filter>
+
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+
+        <activity
+            android:name=".JohnstonActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.DiningApp.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+
+            </intent-filter>
+
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
     </application>
 
 </manifest>

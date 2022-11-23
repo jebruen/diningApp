@@ -40,6 +40,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 /**
@@ -48,11 +50,15 @@ import java.util.stream.Collectors;
 public class PlaceholderFragment extends Fragment {
 
     private static final String ARG_SECTION_NUMBER = "section_number";
+    private static final String MENU_JSON_FILE     = "menu.json";
+    private static final String HOUR_JSON_FILE     = "hours.json";
 
-    private static final ObjectMapper           mapper       = new ObjectMapper();
-    private static       List<FoodItem>         foodItems    = new ArrayList<>();
-    private static       List<DiningHallHour>   hallHourList = null;
-    private              RestClient             client       = new RestClient();
+    private static final ObjectMapper         mapper            = new ObjectMapper();
+    private static       List<FoodItem>       foodItems         = new ArrayList<>();
+    private static       List<DiningHallHour> hallHourList      = new ArrayList<>();
+    private static       List<String>         restaurantOptions = new ArrayList<>();
+    private static       List<String>         diningHallOptions = new ArrayList<>();
+    private        final RestClient           client            = new RestClient();
 
     private PageViewModel         pageViewModel;
     private FragmentMainBinding   binding;
@@ -85,7 +91,6 @@ public class PlaceholderFragment extends Fragment {
         View                 root         = binding.getRoot();
 
         final ListView     listView          = binding.mobileList;
-
         final TextView     textView          = binding.diningHallLayout.operationHoursText;
         final Spinner      diningHallSpinner = binding.diningHallLayout.diningHallOptionsSpinner;
         final Spinner      hoursSpinner      = binding.diningHallLayout.operationHoursSpinner;
@@ -95,29 +100,32 @@ public class PlaceholderFragment extends Fragment {
 
         try {
             if (MainActivity.USE_REMOTE_DATA) {
-                Optional<String> response = client.request("http://10.0.2.2:8080/FoodItems/");
+                Optional<String> response = client.getFoodItems();
                 if (response.isPresent()) {
                     // Update local data
                     foodItems = mapper.readValue(response.get(), new TypeReference<List<FoodItem>>() {});
+                } else {
+                    String menuJsonString = VTDiningScrapingUtils.loadJSONFromAsset(getContext(), MENU_JSON_FILE);
+                    foodItems = mapper.readValue(menuJsonString, new TypeReference<List<FoodItem>>() {});
                 }
-                else {
-                    String menuJsonString = VTDiningScrapingUtils.loadJSONFromAsset(getContext(), "menu.json");
-                    foodItems =  mapper.readValue(menuJsonString, new TypeReference<List<FoodItem>>() {});
-                }
-            }
-            else {
-                String menuJsonString = VTDiningScrapingUtils.loadJSONFromAsset(getContext(), "menu.json");
-                foodItems =  mapper.readValue(menuJsonString, new TypeReference<List<FoodItem>>() {});
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
-        try {
-            String hoursJsonString = VTDiningScrapingUtils.loadJSONFromAsset(this.getContext(), "hours.json");
-            hallHourList           = mapper.readValue(hoursJsonString, new TypeReference<List<DiningHallHour>>() {});
+                response = client.getHours();
+                if (response.isPresent()) {
+                    // Update local data
+                    hallHourList = mapper.readValue(response.get(), new TypeReference<List<DiningHallHour>>() {});
+                } else {
+                    String menuJsonString = VTDiningScrapingUtils.loadJSONFromAsset(getContext(), HOUR_JSON_FILE);
+                    hallHourList = mapper.readValue(menuJsonString, new TypeReference<List<FoodItem>>(){});
+                }
+            } else if (foodItems.size() == 0){
+                String menuJsonString = VTDiningScrapingUtils.loadJSONFromAsset(getContext(), MENU_JSON_FILE);
+                foodItems = mapper.readValue(menuJsonString, new TypeReference<List<FoodItem>>() {});
+
+                String hoursJsonString = VTDiningScrapingUtils.loadJSONFromAsset(getContext(), HOUR_JSON_FILE);
+                hallHourList = mapper.readValue(hoursJsonString, new TypeReference<List<DiningHallHour>>() {});
+            }
         }
-        catch (IOException e) {
+        catch (IOException | InterruptedException | ExecutionException | TimeoutException e) {
             e.printStackTrace();
         }
 
@@ -148,21 +156,26 @@ public class PlaceholderFragment extends Fragment {
                 new String[] {"First Line", "Second Line"},
                 new int[] {android.R.id.text1, android.R.id.text2 });
 
-        List<String> options;
-        List<String> diningHallOptions;
         diningHallOptions = foodItems.stream()
                 .map(FoodItem::getDiningHall)
                 .distinct()
                 .collect(Collectors.toList());
 
-        options = foodItems.stream()
-                .filter(foodItem -> Objects.equals(foodItem.getDiningHall(), " Owens Hall"))
+        restaurantOptions = foodItems.stream()
+                .filter(foodItem -> Objects.equals(foodItem.getDiningHall(), diningHallOptions.get(0)))
                 .map(FoodItem::getOtherInfo)
                 .distinct()
                 .collect(Collectors.toList());
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this.getContext(), android.R.layout.simple_spinner_item, options);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        Optional<DiningHallHour> optionalDiningHallHour =
+                hallHourList.stream()
+                        .filter(hour -> hasDiningHallHours(hour, diningHallOptions.get(0)))
+                        .findFirst();
+
+        optionalDiningHallHour.ifPresent(item -> textView.setText(item.getHours()));
+
+        ArrayAdapter<String> restaurantAdapter = new ArrayAdapter<>(this.getContext(), android.R.layout.simple_spinner_item, restaurantOptions);
+        restaurantAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         ArrayAdapter<String> diningHallOptionsAdapter = new ArrayAdapter<>(this.getContext(), android.R.layout.simple_spinner_item, diningHallOptions);
         diningHallOptionsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -184,13 +197,13 @@ public class PlaceholderFragment extends Fragment {
                 }
                 else {
                     linearLayout.setVisibility(View.VISIBLE);
-                    restaurantSpinner.setAdapter(adapter);
+                    restaurantSpinner.setAdapter(restaurantAdapter);
                     diningHallSpinner.setAdapter(diningHallOptionsAdapter);
                     diningHallSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                         @Override
                         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                 String selectedDiningHall = parent.getItemAtPosition(position).toString();
-                                List<String> updatedOptions = foodItems.stream()
+                                restaurantOptions = foodItems.stream()
                                         .filter(foodItem -> Objects.equals(foodItem.getDiningHall(), selectedDiningHall))
                                         .map(FoodItem::getOtherInfo)
                                         .distinct()
@@ -198,7 +211,7 @@ public class PlaceholderFragment extends Fragment {
                                 ArrayAdapter<String> updatedAdapter = new ArrayAdapter<>(
                                         getContext(),
                                         android.R.layout.simple_spinner_item,
-                                        updatedOptions
+                                        restaurantOptions
                                 );
 
                                 Optional<DiningHallHour> optionalDiningHallHour =
@@ -206,9 +219,9 @@ public class PlaceholderFragment extends Fragment {
                                                 .filter(hour -> hasDiningHallHours(hour, selectedDiningHall))
                                                 .findFirst();
                                 optionalDiningHallHour.ifPresent(item -> textView.setText(item.getHours()));
-
                                 updatedAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                                 restaurantSpinner.setAdapter(updatedAdapter);
+                                setFoodItemListAdapter(recyclerView, foodItems);
                         }
                         @Override
                         public void onNothingSelected(AdapterView<?> parent) {
@@ -242,7 +255,7 @@ public class PlaceholderFragment extends Fragment {
         binding = null;
     }
 
-    private void setFoodItemListAdapter(RecyclerView courseRV, List<FoodItem> foodItems) {
+    private void setFoodItemListAdapter(RecyclerView recyclerView, List<FoodItem> foodItems) {
         FoodItemCardAdapter foodItemCardAdapter = new FoodItemCardAdapter(this.getContext(), foodItems);
 
         // below line is for setting a layout manager for our recycler view.
@@ -250,8 +263,8 @@ public class PlaceholderFragment extends Fragment {
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this.getContext(), LinearLayoutManager.VERTICAL, false);
 
         // in below two lines we are setting layoutmanager and adapter to our recycler view.
-        courseRV.setLayoutManager(linearLayoutManager);
-        courseRV.setAdapter(foodItemCardAdapter);
+        recyclerView.setLayoutManager(linearLayoutManager);
+        recyclerView.setAdapter(foodItemCardAdapter);
     }
 
     private boolean hasDiningHallHours(DiningHallHour hallHour, String selectedDiningHall) {
@@ -262,20 +275,23 @@ public class PlaceholderFragment extends Fragment {
         return hallHour.getDiningHall().contains(selectedDiningHall.trim());
     }
 
-    public static void updateFoodItem(String foodItemName, String type, int updatedValue) {
+    public static void updateFoodItem(String foodItemName, FoodItemCardAdapter.FoodItemUpdateType type, int updatedValue) {
         switch (type) {
-            case "waitingLine":
+            case UPDATE_WAITING_LINE:
                 foodItems.stream()
                         .filter(foodItem -> Objects.equals(foodItem.getName(), foodItemName))
                         .forEach(foodItem -> foodItem.setWaitingLine(updatedValue));
-            case "thumbUp":
+                break;
+            case UPDATE_LIKE:
                 foodItems.stream()
                         .filter(foodItem -> Objects.equals(foodItem.getName(), foodItemName))
                         .forEach(foodItem -> foodItem.setThumbUpCount(updatedValue));
-            case "thumbDown":
+                break;
+            case UPDATE_DISLIKE:
                 foodItems.stream()
                         .filter(foodItem -> Objects.equals(foodItem.getName(), foodItemName))
                         .forEach(foodItem -> foodItem.setThumbDownCount(updatedValue));
+                break;
         }
     }
 }

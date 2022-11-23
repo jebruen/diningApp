@@ -18,6 +18,13 @@ import okhttp3.Response;
 public class RestClient {
 
     private static final OkHttpClient client = new OkHttpClient();
+    public static final String HOST                              = "http://10.0.2.2:8080/";
+    public static final String BASE_MENU_API_URL                 =  HOST + "FoodItems/";
+    public static final String BASE_HOUR_API_URL                 =  HOST + "DiningHallHours/";
+    public static final String UPDATE_FOOD_ITEM_WAITING_LINE_URL =  HOST + "FoodItemsWaitingLine?foodName=%s&waitingLine=%s";
+    public static final String UPDATE_FOOD_ITEM_THUMB_UP_URL     =  HOST + "FoodItemsThumbUp?foodName=%s&thumbUpCount=%s";
+    public static final String UPDATE_FOOD_ITEM_THUMB_DOWN_URL   =  HOST + "FoodItemsThumbDown?foodName=%s&thumbDownCount=%s";
+
     /**
      * FIXME: Should replace with AsycnTask?
      * @param url
@@ -29,6 +36,27 @@ public class RestClient {
         json = future.get(10, TimeUnit.SECONDS);
         return StringUtils.isNotBlank(json) ? Optional.of(json) : Optional.empty();
     }
+
+    public Optional<String> getFoodItems () throws ExecutionException, InterruptedException, TimeoutException {
+        return request(BASE_MENU_API_URL);
+    }
+
+    public Optional<String> getHours () throws ExecutionException, InterruptedException, TimeoutException {
+        return request(BASE_HOUR_API_URL);
+    }
+
+    public Optional<String> updateFoodItemWaitingLine (String foodItemName, int updatedValue) throws ExecutionException, InterruptedException, TimeoutException {
+        return request(String.format(UPDATE_FOOD_ITEM_WAITING_LINE_URL, foodItemName, updatedValue));
+    }
+
+    public Optional<String> updateFoodItemThumbUp(String foodItemName, int updatedValue) throws ExecutionException, InterruptedException, TimeoutException {
+        return request(String.format(UPDATE_FOOD_ITEM_THUMB_UP_URL, foodItemName, updatedValue));
+    }
+
+    public Optional<String> updateFoodItemThumbDown (String foodItemName, int updatedValue) throws ExecutionException, InterruptedException, TimeoutException {
+        return request(String.format(UPDATE_FOOD_ITEM_THUMB_DOWN_URL, foodItemName, updatedValue));
+    }
+
 
     class Work implements Callable<String> {
         private final String url;

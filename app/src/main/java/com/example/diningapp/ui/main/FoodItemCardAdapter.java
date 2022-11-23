@@ -23,6 +23,12 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
     private final Context        context;
     private final List<FoodItem> foodItemArrayList;
 
+    public enum FoodItemUpdateType {
+        UPDATE_DISLIKE,
+        UPDATE_LIKE,
+        UPDATE_WAITING_LINE
+    }
+
     // Constructor
     public FoodItemCardAdapter(Context context, List<FoodItem> foodItemArrayList) {
         this.context = context;
@@ -74,88 +80,67 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
             foodItemName  = itemView.findViewById(R.id.food_item_name);
             thumbUpText   = itemView.findViewById(R.id.thumb_up_text);
             thumbDownText = itemView.findViewById(R.id.thumb_down_text);
-            thumbDownView = itemView.findViewById(R.id.thumb_up_view);
-            thumbUpView   = itemView.findViewById(R.id.thumb_down_view);
+            thumbDownView = itemView.findViewById(R.id.thumb_down_view);
+            thumbUpView   = itemView.findViewById(R.id.thumb_up_view);
 
             hourglassView.setOnClickListener(view -> {
-                int oldData = Integer.parseInt(hourglassText.getText().toString());
-                oldData++;
-                try {
-                    // Update remote database
-                    Optional<String> response = client.request("http://10.0.2.2:8080/FoodItemsUpdateWaitingLine?" +"foodName="
-                            + foodItemName.getText().toString()
-                            + "&waitingLine="+ oldData);
-                    if (response.isPresent()) {
-                        // Update local data
-                        hourglassText.setText(String.valueOf(oldData));
-                        PlaceholderFragment.updateFoodItem(
-                                foodItemName.getText().toString(),
-                                "waitingLine",
-                                oldData
-                        );
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                updateFoodItem (hourglassText, FoodItemUpdateType.UPDATE_WAITING_LINE);
             });
 
             thumbUpView.setOnClickListener(view -> {
-                int oldData = Integer.parseInt(thumbUpText.getText().toString());
-                oldData++;
-                try {
-                    // Update remote database
-                    if (MainActivity.USE_REMOTE_DATA) {
-                        Optional<String> response = client.request("http://10.0.2.2:8080/FoodItemsUpdateThumbUp?" +"foodName="
-                                + foodItemName.getText().toString()
-                                + "&thumbUpCount="+ oldData);
-                        if (response.isPresent()) {
-                            // Update local data
-                            thumbUpText.setText(String.valueOf(oldData));
-                            PlaceholderFragment.updateFoodItem(
-                                    foodItemName.getText().toString(),
-                                    "thumbUp",
-                                    oldData
-                            );
-                        }
-                    }
-                    else {
-                        thumbUpText.setText(String.valueOf(oldData));
-                        PlaceholderFragment.updateFoodItem(
-                                foodItemName.getText().toString(),
-                                "thumbUp",
-                                oldData
-                        );
-                    }
+                updateFoodItem (thumbUpText, FoodItemUpdateType.UPDATE_LIKE);
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
             });
 
             thumbDownView.setOnClickListener(view -> {
-                int oldData = Integer.parseInt(thumbUpText.getText().toString());
-                oldData++;
-                try {
-                    // Update remote database
-                    Optional<String> response = client.request("http://10.0.2.2:8080/FoodItemsUpdateWaitingLine?" +"foodName="
-                            + foodItemName.getText().toString()
-                            + "&thumbDownCount="+ oldData);
-                    if (response.isPresent()) {
-                        // Update local data
-                        thumbUpText.setText(String.valueOf(oldData));
-                        hourglassText.setText(String.valueOf(oldData));
-                        PlaceholderFragment.updateFoodItem(
-                                foodItemName.getText().toString(),
-                                "thumbDown",
-                                oldData
-                        );
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                updateFoodItem (thumbDownText, FoodItemUpdateType.UPDATE_DISLIKE);
             });
         }
 
-    }
+        private void updateFoodItem (TextView textView, FoodItemUpdateType type) {
+            int updatedData = Integer.parseInt(textView.getText().toString());
+            updatedData++;
+            try {
+                Optional<String> response;
+                // Update remote database
+                if (MainActivity.USE_REMOTE_DATA) {
+                    switch (type) {
+                        case UPDATE_WAITING_LINE:
+                            response = client.updateFoodItemWaitingLine(foodItemName.getText().toString(), updatedData);
+                            break;
+                        case UPDATE_LIKE:
+                            response = client.updateFoodItemThumbUp(foodItemName.getText().toString(), updatedData);
+                            break;
+                        case UPDATE_DISLIKE:
+                            response = client.updateFoodItemThumbDown(foodItemName.getText().toString(), updatedData);
+                            break;
+                        default:
+                            throw new IllegalArgumentException();
+                    }
 
+                    if (response.isPresent()) {
+                        // Update local data
+                        textView.setText(String.valueOf(updatedData));
+                        PlaceholderFragment.updateFoodItem(
+                                foodItemName.getText().toString(),
+                                type,
+                                updatedData
+                        );
+                    }
+                }
+                else {
+                    // Just update local data
+                    textView.setText(String.valueOf(updatedData));
+                    PlaceholderFragment.updateFoodItem(
+                            foodItemName.getText().toString(),
+                            type,
+                            updatedData
+                    );
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

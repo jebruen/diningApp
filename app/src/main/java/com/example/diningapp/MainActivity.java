@@ -12,17 +12,22 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
 
-import com.example.diningapp.database.DBHandler;
 import com.example.diningapp.databinding.ActivityMainBinding;
 import com.example.diningapp.ui.main.SectionsPagerAdapter;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
 public class MainActivity extends AppCompatActivity {
 
+    public static final boolean USE_REMOTE_DATA = false;
+
     private ActivityMainBinding binding;
-    private DBHandler           dbHandler;
-            AlertDialog dialog;
+    private AlertDialog dialog;
             LinearLayout layout;
 
     @Override
@@ -31,7 +36,6 @@ public class MainActivity extends AppCompatActivity {
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        dbHandler = new DBHandler(MainActivity.this);
 
         SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this, getSupportFragmentManager());
         ViewPager viewPager = binding.viewPager;
@@ -79,15 +83,8 @@ public class MainActivity extends AppCompatActivity {
                         String newtype          = type.getText().toString();
                         String newdiningHall    = diningHall.getText().toString();
                         String newotherInfo     = otherInfo .getText().toString();
-                        dbHandler.addFoodItem(
-                                newname,
-                                newlabel,
-                                newdescription,
-                                newamount,
-                                newtype,
-                                newdiningHall,
-                                newotherInfo
-                        );
+
+                        // TODO: Not add food item anymore, this should be deleted
 
                         finish();
                         startActivity(getIntent());
@@ -115,5 +112,20 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         layout.addView(view);
+    }
+
+    /**
+     * The helper functionality to update waiting line, thumb up, thumb down information
+     * @throws InterruptedException
+     */
+    private void setUpSchedule() throws InterruptedException {
+        ScheduledExecutorService ses = Executors.newScheduledThreadPool(1);
+
+        Runnable task1 = () -> {
+            // TODO: Add logic here
+        };
+
+        // init Delay = 5, repeat the task every 1 minute
+        ScheduledFuture<?> scheduledFuture = ses.scheduleAtFixedRate(task1, 5, 1, TimeUnit.MINUTES);
     }
 }

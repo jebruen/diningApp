@@ -1,15 +1,18 @@
 package com.example.diningapp.util;
 
-
-import androidx.room.Entity;
-import androidx.room.PrimaryKey;
-
-@Entity(tableName = "diningHallHour")
 public class DiningHallHour {
+    private Long   id;
     private String hours;
-    @PrimaryKey
     private String diningHall;
     private String date;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String getHours() {
         return hours;
@@ -36,15 +39,21 @@ public class DiningHallHour {
     }
 
     public static final class DiningHallHourBuilder {
+        private Long   id;
         private String hours;
         private String diningHall;
         private String date;
 
-        private DiningHallHourBuilder() {
+        public DiningHallHourBuilder() {
         }
 
         public static DiningHallHourBuilder aDiningHallHour() {
             return new DiningHallHourBuilder();
+        }
+
+        public DiningHallHourBuilder id(Long id) {
+            this.id = id;
+            return this;
         }
 
         public DiningHallHourBuilder hours(String hours) {
@@ -64,9 +73,12 @@ public class DiningHallHour {
 
         public DiningHallHour build() {
             DiningHallHour diningHallHour = new DiningHallHour();
-            diningHallHour.date = this.date;
-            diningHallHour.diningHall = this.diningHall;
-            diningHallHour.hours = this.hours;
+
+            diningHallHour.id          = this.id;
+            diningHallHour.date        = this.date;
+            diningHallHour.diningHall  = this.diningHall;
+            diningHallHour.hours       = this.hours;
+
             return diningHallHour;
         }
     }

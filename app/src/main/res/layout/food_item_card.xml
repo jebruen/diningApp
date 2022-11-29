@@ -70,5 +70,34 @@
             android:layout_gravity="center_vertical"
             android:layout_margin="5dp"
             android:text="20" />
+
     </LinearLayout>
+    <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="fill_parent"
+        android:layout_marginTop="30dp"
+        android:layout_height="fill_parent"
+        android:padding="5dp">
+
+        <TableRow
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:id="@+id/label_row"
+            >
+
+<!--            <TextView-->
+<!--                android:text="Label 1"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_column="1" />-->
+<!--            -->
+            <ImageView
+                android:id="@+id/add_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="5dp"
+                android:src="@drawable/ic_add" />
+        </TableRow>
+    </TableLayout>
 </androidx.cardview.widget.CardView>

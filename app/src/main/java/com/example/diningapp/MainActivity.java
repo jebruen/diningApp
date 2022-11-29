@@ -42,19 +42,11 @@ public class MainActivity extends AppCompatActivity {
         viewPager.setAdapter(sectionsPagerAdapter);
         TabLayout tabs = binding.tabs;
         tabs.setupWithViewPager(viewPager);
-        FloatingActionButton add = binding.add;
         //layout = binding.container;
         layout = findViewById(R.id.container);
         buildDialog();
 
-        add.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                //        .setAction("Action", null).show();
-                dialog.show();
-            }
-        });
+
     }
 
     private void buildDialog() {

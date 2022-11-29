@@ -1,5 +1,7 @@
 package com.example.diningapp;
 
+import static com.example.diningapp.ui.main.PlaceholderFragment.MENU_JSON_FILE;
+
 import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
@@ -10,11 +12,13 @@ import android.widget.SimpleAdapter;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.diningapp.database.DBHandler;
 import com.example.diningapp.databinding.ActivityDietrickBinding;
 import com.example.diningapp.databinding.ActivityOwensBinding;
 import com.example.diningapp.ui.main.PageViewModel;
+import com.example.diningapp.util.DiningHallHour;
 import com.example.diningapp.util.FoodItem;
+import com.example.diningapp.util.RestClient;
+import com.example.diningapp.util.VTDiningScrapingUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -25,14 +29,18 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 public class OwensActivity extends AppCompatActivity {
     private ActivityOwensBinding binding;
 
     ObjectMapper mapper = new ObjectMapper();
     private PageViewModel pageViewModel;
+    private static       List<FoodItem>       foodItems         = new ArrayList<>();
 
-    private DBHandler           dbHandler;
+    private        final RestClient client            = new RestClient();
     AlertDialog dialog;
     LinearLayout layout;
 
@@ -43,26 +51,33 @@ public class OwensActivity extends AppCompatActivity {
         setContentView(R.layout.activity_owens);
 
         binding = ActivityOwensBinding.inflate(getLayoutInflater());
-
-        dbHandler = new DBHandler(getApplicationContext());
         View                 root         = binding.getRoot();
 
         final ListView listView = binding.mobileList1;
 
         List<FoodItem>       menuList;
-         try {
-           String menuJsonString  = loadJSONFromAsset(getApplicationContext(), "menu.json");
-            menuList               = mapper.readValue(menuJsonString, new TypeReference<List<FoodItem>>() {});
-            dbHandler.init(menuList);
+        try {
+            if (MainActivity.USE_REMOTE_DATA) {
+                Optional<String> response = client.getFoodItems();
+                if (response.isPresent()) {
+                    // Update local data
+                    foodItems = mapper.readValue(response.get(), new TypeReference<List<FoodItem>>() {});
+                } else {
+                    String menuJsonString = VTDiningScrapingUtils.loadJSONFromAsset(getApplicationContext(), MENU_JSON_FILE);
+                    foodItems = mapper.readValue(menuJsonString, new TypeReference<List<FoodItem>>() {});
+                }
+
+            } else if (foodItems.size() == 0){
+                String menuJsonString = VTDiningScrapingUtils.loadJSONFromAsset(getApplicationContext(), MENU_JSON_FILE);
+                foodItems = mapper.readValue(menuJsonString, new TypeReference<List<FoodItem>>() {});
+            }
         }
-        catch (IOException e) {
+        catch (IOException | InterruptedException | ExecutionException | TimeoutException e) {
             e.printStackTrace();
         }
 
-
         List<Map<String, String>> menuData = new ArrayList<>();
 
-        List<FoodItem> foodItems =  dbHandler.getAllFoodItem();
         Collections.reverse(foodItems);
         for(FoodItem foodItem: foodItems) {
             // D2 only

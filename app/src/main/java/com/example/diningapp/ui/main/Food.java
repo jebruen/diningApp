@@ -9,19 +9,25 @@ import android.view.ViewGroup;
 
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.viewpager.widget.ViewPager;
 
 import com.example.diningapp.DietrickActivity;
 import com.example.diningapp.JohnstonActivity;
+import com.example.diningapp.MainActivity;
 import com.example.diningapp.OwensActivity;
 import com.example.diningapp.R;
 import com.example.diningapp.SquiresActivity;
 import com.example.diningapp.TurnerActivity;
+import com.example.diningapp.databinding.ActivityMainBinding;
 
 
 public class Food extends Fragment {
     public Food() {
 
     }
+    private ActivityMainBinding binding;
+    private PageViewModel         pageViewModel;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstaceState) {
         View view = inflater.inflate(R.layout.food_fragment, container, false);
@@ -37,7 +43,9 @@ public class Food extends Fragment {
         turner.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                openTurnerActivity();
+                ViewPager viewPager = (ViewPager) view.getRootView().findViewById(R.id.view_pager);
+                PlaceholderFragment.currentDiningHall = "Turner Place";
+                viewPager.setCurrentItem(2);
             }
         });
 
@@ -45,7 +53,10 @@ public class Food extends Fragment {
         squires.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                openSquiresActivity();
+                ViewPager viewPager = (ViewPager) view.getRootView().findViewById(R.id.view_pager);
+                PlaceholderFragment.currentDiningHall = "Squires";
+                viewPager.setCurrentItem(2);
+                // openSquiresActivity();
             }
         });
 
@@ -53,7 +64,10 @@ public class Food extends Fragment {
         owens.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                openOwensActivity();
+
+                ViewPager viewPager = (ViewPager) view.getRootView().findViewById(R.id.view_pager);
+                PlaceholderFragment.currentDiningHall = "Owens";
+                viewPager.setCurrentItem(2);
             }
         });
 

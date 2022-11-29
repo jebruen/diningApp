@@ -7,20 +7,19 @@ import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModel;
 
 public class PageViewModel extends ViewModel {
-
-
     private MutableLiveData<Integer> mIndex = new MutableLiveData<>();
     private LiveData<String> mText = Transformations.map(mIndex, new Function<Integer, String>() {
         @Override
         public String apply(Integer input) {
-            if(input == 1) {
-                return "Herp derp";
+
+            if(input == 0) {
+                return "home";
             }
-            else if(input == 2) {
-                return "hihi";
+            else if(input == 1) {
+                return "hour";
             }
             else {
-                return "idk";
+                return "detail";
             }
         }
     });

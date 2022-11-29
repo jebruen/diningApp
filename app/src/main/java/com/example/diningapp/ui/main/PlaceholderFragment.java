@@ -40,8 +40,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -50,8 +54,10 @@ import java.util.stream.Collectors;
 public class PlaceholderFragment extends Fragment {
 
     private static final String ARG_SECTION_NUMBER = "section_number";
-    private static final String MENU_JSON_FILE     = "menu.json";
+    public static final String MENU_JSON_FILE     = "menu.json";
     private static final String HOUR_JSON_FILE     = "hours.json";
+
+    public static String currentDiningHall = "Owens";
 
     private static final ObjectMapper         mapper            = new ObjectMapper();
     private static       List<FoodItem>       foodItems         = new ArrayList<>();
@@ -92,6 +98,7 @@ public class PlaceholderFragment extends Fragment {
 
         final ListView     listView          = binding.mobileList;
         final TextView     textView          = binding.diningHallLayout.operationHoursText;
+        final TextView     hintText          = binding.diningHallLayout.hintText;
         final Spinner      diningHallSpinner = binding.diningHallLayout.diningHallOptionsSpinner;
         final Spinner      hoursSpinner      = binding.diningHallLayout.operationHoursSpinner;
         final Spinner      restaurantSpinner = binding.diningHallLayout.diningHallsSpinner;
@@ -156,10 +163,22 @@ public class PlaceholderFragment extends Fragment {
                 new String[] {"First Line", "Second Line"},
                 new int[] {android.R.id.text1, android.R.id.text2 });
 
+        hintText.setText("Check the Menu of Your Favorite Food Shop at " + currentDiningHall);
         diningHallOptions = foodItems.stream()
+                .filter(foodItem -> !StringUtils.equals(foodItem.getDiningHall(), "Dinning Hall"))
                 .map(FoodItem::getDiningHall)
                 .distinct()
                 .collect(Collectors.toList());
+
+        Optional<String> selectedDiningHall = diningHallOptions
+                .stream()
+                .filter(diningHall -> diningHall.contains(currentDiningHall))
+                .findFirst();
+
+        if (selectedDiningHall.isPresent()) {
+            diningHallOptions.add(0, selectedDiningHall.get());
+            diningHallOptions = diningHallOptions.stream().distinct().collect(Collectors.toList());
+        }
 
         restaurantOptions = foodItems.stream()
                 .filter(foodItem -> Objects.equals(foodItem.getDiningHall(), diningHallOptions.get(0)))
@@ -186,16 +205,20 @@ public class PlaceholderFragment extends Fragment {
         pageViewModel.getText().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(@Nullable String s) {
+                System.out.println("Changing " + s);
                 // textView.setText(s);
-                if (StringUtils.equals(s, "Hello world from section: 1")) {
+                if (StringUtils.equals(s, "home")) {
+                    System.out.println("tab 1" + s);
                     listView.setAdapter(simpleAdapter);
                     linearLayout.setVisibility(View.INVISIBLE);
                 }
-                else if (StringUtils.equals(s, "Hello world from section: 2")) {
+                else if (StringUtils.equals(s, "hour")) {
+                    System.out.println("tab 2" + s);
                     listView.setAdapter(simpleAdapter2);
                     linearLayout.setVisibility(View.INVISIBLE);
                 }
                 else {
+                    System.out.println("tab 3" + s);
                     linearLayout.setVisibility(View.VISIBLE);
                     restaurantSpinner.setAdapter(restaurantAdapter);
                     diningHallSpinner.setAdapter(diningHallOptionsAdapter);
@@ -293,5 +316,11 @@ public class PlaceholderFragment extends Fragment {
                         .forEach(foodItem -> foodItem.setThumbDownCount(updatedValue));
                 break;
         }
+    }
+
+
+    public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+        Set<Object> seen = ConcurrentHashMap.newKeySet();
+        return t -> seen.add(keyExtractor.apply(t));
     }
 }

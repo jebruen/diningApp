@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">diningApp</string>
-    <string name="tab_text_1">Operating Hours</string>
-    <string name="tab_text_2">Dining Halls</string>
+    <string name="tab_text_1">Hours</string>
+    <string name="tab_text_2">Menu</string>
 </resources>

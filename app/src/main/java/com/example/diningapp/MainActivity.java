@@ -1,13 +1,7 @@
 package com.example.diningapp;
 
-import android.content.DialogInterface;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.TabHost;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,16 +9,7 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.example.diningapp.databinding.ActivityMainBinding;
 import com.example.diningapp.ui.main.SectionsPagerAdapter;
-import com.example.diningapp.util.RestClient;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
-
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public class MainActivity extends AppCompatActivity {
 

@@ -2,6 +2,7 @@ package com.example.diningapp.ui.main;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.hardware.biometrics.BiometricManager;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -65,12 +67,15 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
         holder.thumbDownText .setText(String.valueOf(foodItem.getThumbDownCount()));
         holder.hourglassText .setText(String.valueOf(foodItem.getWaitingLine()));
         holder.detailView    .setTooltipText(foodItem.getDescription());
+        holder.tableRow      .setTooltipText(foodItem.getLabel());
+
         TooltipCompat.setTooltipText(holder.detailView, foodItem.getDescription());
 
         List<String> labels =
                 Arrays.stream(foodItem.getLabel().split(";")).distinct()
                         .filter(StringUtils::isNotBlank)
                         .collect(Collectors.toList());
+
         for (String label: labels) {
             addLabelToView(holder.tableRow, label);
         }
@@ -146,7 +151,7 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
             detailView.setOnClickListener(view -> {
                 AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
                 builder.setTitle("Detail");
-                builder.setMessage(StringUtils.isNotBlank(detailView.getTooltipText()) ? detailView.getTooltipText() : "No Detailed Information");
+                builder.setMessage(StringUtils.isNotBlank(detailView.getTooltipText()) ? detailView.getTooltipText() : "No Detailed Information.");
                 builder.show();
             });
         }
@@ -200,7 +205,41 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
         @Override
         public boolean onMenuItemClick(MenuItem menuItem) {
             try {
-                 addFoodItemLabel(foodItemName.getText().toString(), menuItem.getTitle().toString(), this.itemView);
+                String labelToUpdate = menuItem.getTitle().toString();
+
+                if (Objects.nonNull(tableRow.getTooltipText())) {
+                    List<String> labels =
+                            Arrays.stream(tableRow.getTooltipText().toString().split(";")).distinct()
+                                    .filter(StringUtils::isNotBlank)
+                                    .collect(Collectors.toList());
+                    if (labels.contains(labelToUpdate)) {
+                        Toast.makeText(tableRow.getContext().getApplicationContext(), "The label exist!", Toast.LENGTH_SHORT).show();
+                    }
+                    else if ((labels.contains("Vegetarian") || labels.contains("Vegan") || labels.contains("vegetarian"))
+                            && StringUtils.equals(labelToUpdate, "Meat")) {
+                        Toast.makeText(tableRow.getContext().getApplicationContext(), "The label conflicts with existing labels!", Toast.LENGTH_SHORT).show();
+                    }
+                    else if (   (labels.contains("Meat")
+                            && StringUtils.equals(labelToUpdate, "Vegetarian") || StringUtils.equals(labelToUpdate, "Vegan") || StringUtils.equals(labelToUpdate, "vegetarian"))
+                    ) {
+                        Toast.makeText(tableRow.getContext().getApplicationContext(), "The label conflicts with existing labels!", Toast.LENGTH_SHORT).show();
+                    }
+                    else if ((labels.contains("Cold")) && StringUtils.equals(labelToUpdate, "Hot")) {
+                        Toast.makeText(tableRow.getContext().getApplicationContext(), "The label conflicts with existing labels!", Toast.LENGTH_SHORT).show();
+                    }
+                    else if ((labels.contains("Hot")) && StringUtils.equals(labelToUpdate, "Cold")) {
+                        Toast.makeText(tableRow.getContext().getApplicationContext(), "The label conflicts with existing labels!", Toast.LENGTH_SHORT).show();
+                    }
+                    else {
+                        addFoodItemLabel(foodItemName.getText().toString(), menuItem.getTitle().toString(), this.itemView);
+                        labels.add(labelToUpdate);
+                        tableRow.setTooltipText(String.join(";", labels));
+                    }
+                }
+                else {
+                    addFoodItemLabel(foodItemName.getText().toString(), menuItem.getTitle().toString(), this.itemView);
+                    tableRow.setTooltipText(labelToUpdate);
+                }
 
             } catch (ExecutionException | TimeoutException | InterruptedException e) {
                 e.printStackTrace();
@@ -229,6 +268,7 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
             else {
                 client.updateFoodItemLabels(foodItem, label);
                 tableRow.addView(textView1, 0);
+                Toast.makeText(this.itemView.getRootView().getContext().getApplicationContext(), "Added Label: " + label, Toast.LENGTH_SHORT).show();
             }
         }
     }

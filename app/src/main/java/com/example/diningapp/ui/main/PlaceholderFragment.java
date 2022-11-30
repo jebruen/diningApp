@@ -33,10 +33,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -141,6 +145,8 @@ public class PlaceholderFragment extends Fragment {
             e.printStackTrace();
         }
 
+
+
         List<Map<String, String>> hoursData = new ArrayList<>();
         List<DiningHallHour> diningHallHours =  hallHourList;
         for(DiningHallHour diningHallHour: diningHallHours) {
@@ -157,7 +163,7 @@ public class PlaceholderFragment extends Fragment {
             map.put("Second Line",foodItem.getDescription());
             menuData.add(map);
         }
-
+        LocalDateTime now = LocalDateTime.now();
         SimpleAdapter simpleAdapter= new SimpleAdapter(this.getContext(), menuData,
                 android.R.layout.simple_list_item_2,
                 new String[] {"First Line", "Second Line" },
@@ -191,21 +197,55 @@ public class PlaceholderFragment extends Fragment {
                 .distinct()
                 .collect(Collectors.toList());
 
-        Optional<DiningHallHour> optionalDiningHallHour =
+
+        String dateString = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        Optional<DiningHallHour> optionalDiningHallHour1 =
                 hallHourList.stream()
                         .filter(hour -> hasDiningHallHours(hour, diningHallOptions.get(0)))
+                        .filter(hour -> StringUtils.equals(hour.getDate(), dateString))
+                        .filter(hour -> selectedDiningHall.isPresent() && selectedDiningHall.get().contains(hour.getDiningHall()))
                         .findFirst();
 
-        optionalDiningHallHour.ifPresent(item -> textView.setText(item.getHours()));
+        Optional<DiningHallHour> optionalDiningHallHour2 =
+                hallHourList.stream()
+                        .filter(hour -> hasDiningHallHours(hour, diningHallOptions.get(0)))
+                        .filter(hour -> StringUtils.equals(hour.getDate(), dateString))
+                        .findFirst();
+
+        optionalDiningHallHour2
+                .ifPresent(item -> textView.setText(item.getDiningHall() + ": " + item.getHours()));
+
+        optionalDiningHallHour1
+                .ifPresent(item -> textView.setText(item.getDiningHall() + ": " + item.getHours()));
+
+//        String dateString = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+//        List<String> optionalDiningHallHour =
+//                hallHourList.stream()
+//                        .filter(hour -> StringUtils.equals(hour.getDate(), dateString))
+//                        .filter(hour -> hour.getDiningHall().contains(restaurantOptions.get(0)))
+//                        .filter(hour -> hasDiningHallHours(hour, diningHallOptions.get(0)))
+//                        .map(hour -> hour.getDiningHall() + ": " + hour.getHours())
+//                        .collect(Collectors.toList());
+
+//        if (optionalDiningHallHour!= null && optionalDiningHallHour.size() > 0) {
+//            textView.setText(String.join("/n", optionalDiningHallHour));
+//        }
 
         ArrayAdapter<String> restaurantAdapter = new ArrayAdapter<>(this.getContext(), android.R.layout.simple_spinner_item, restaurantOptions);
         restaurantAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        // System.out.println("selected Rest: " + restaurantSpinner.getSelectedItem().toString());
 
         ArrayAdapter<String> diningHallOptionsAdapter = new ArrayAdapter<>(this.getContext(), android.R.layout.simple_spinner_item, diningHallOptions);
         diningHallOptionsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         ArrayAdapter hourAdapter = ArrayAdapter.createFromResource(this.getContext(), R.array.operation_hours_spinner, R.layout.spinner_item);
         hoursSpinner.setAdapter(hourAdapter);
+
+
+        int todayDayOfWeek = now.getDayOfWeek().getValue();
+        hoursSpinner.setSelection(todayDayOfWeek -1);
 
         pageViewModel.getText().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
@@ -242,11 +282,24 @@ public class PlaceholderFragment extends Fragment {
                                         restaurantOptions
                                 );
 
-                                Optional<DiningHallHour> optionalDiningHallHour =
-                                        hallHourList.stream()
-                                                .filter(hour -> hasDiningHallHours(hour, selectedDiningHall))
-                                                .findFirst();
-                                optionalDiningHallHour.ifPresent(item -> textView.setText(item.getHours()));
+//                                Optional<DiningHallHour> optionalDiningHallHour =
+//                                        hallHourList.stream()
+//                                                .filter(hour -> hasDiningHallHours(hour, selectedDiningHall))
+//                                                .findFirst();
+//                                optionalDiningHallHour.ifPresent(item -> textView.setText(item.getHours()));
+
+                            String dateString = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                            List<String> optionalDiningHallHour =
+                                    hallHourList.stream()
+                                            .filter(hour -> StringUtils.equals(hour.getDate(), dateString))
+                                            .filter(hour -> hasDiningHallHours(hour, diningHallOptions.get(0)))
+                                            .filter(hour -> hour.getDiningHall().contains(restaurantOptions.get(0)))
+                                            .map(hour -> hour.getDiningHall() + ": " + hour.getHours())
+                                            .collect(Collectors.toList());
+
+                            if (optionalDiningHallHour!= null && optionalDiningHallHour.size() > 0) {
+                                textView.setText(String.join("\n", optionalDiningHallHour));
+                            }
                                 updatedAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                                 restaurantSpinner.setAdapter(updatedAdapter);
                                 setFoodItemListAdapter(recyclerView, foodItems);
@@ -307,7 +360,9 @@ public class PlaceholderFragment extends Fragment {
     private boolean hasDiningHallHours(DiningHallHour hallHour, String selectedDiningHall) {
         String[] items = selectedDiningHall.split("at");
         if (items.length > 1) {
-            return hallHour.getDiningHall().contains(items[1].replace("Hall", "").trim());
+            return
+                    hallHour.getDiningHall().contains(items[1].replace("Hall", "").trim())
+                    || hallHour.getDiningHall().contains(items[0].replace("Hall", "").trim());
         }
         return hallHour.getDiningHall().contains(selectedDiningHall.trim());
     }

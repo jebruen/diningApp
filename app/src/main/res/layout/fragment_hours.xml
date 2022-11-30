@@ -5,11 +5,16 @@
     android:layout_height="match_parent"
     tools:context=".Hours">
     <!-- TODO: Update blank fragment layout -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:textAlignment="center"
-        android:text="Hours Fragment"
-        android:textSize="16sp"
-        android:textStyle="bold"/>
+    <ListView
+        android:id="@+id/hour_list"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/activity_horizontal_margin"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:layout_marginEnd="@dimen/activity_horizontal_margin"
+        android:layout_marginBottom="@dimen/activity_vertical_margin"
+        tools:layout_constraintLeft_creator="1"
+        tools:layout_constraintTop_creator="1"
+        >
+    </ListView>
 </FrameLayout>

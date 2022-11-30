@@ -43,6 +43,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -55,7 +59,8 @@ public class PlaceholderFragment extends Fragment {
 
     private static final String ARG_SECTION_NUMBER = "section_number";
     public static final String MENU_JSON_FILE     = "menu.json";
-    private static final String HOUR_JSON_FILE     = "hours.json";
+    public static final String HOUR_JSON_FILE     = "hours.json";
+    public static       boolean schedulerRunning  = false;
 
     public static String currentDiningHall = "Owens";
 
@@ -205,7 +210,7 @@ public class PlaceholderFragment extends Fragment {
         pageViewModel.getText().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(@Nullable String s) {
-                System.out.println("Changing " + s);
+
                 // textView.setText(s);
                 if (StringUtils.equals(s, "home")) {
                     System.out.println("tab 1" + s);
@@ -269,6 +274,15 @@ public class PlaceholderFragment extends Fragment {
                 }
             }
         });
+
+        try {
+            if (!schedulerRunning) {
+                setUpSchedule();
+            }
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return root;
     }
 
@@ -293,7 +307,7 @@ public class PlaceholderFragment extends Fragment {
     private boolean hasDiningHallHours(DiningHallHour hallHour, String selectedDiningHall) {
         String[] items = selectedDiningHall.split("at");
         if (items.length > 1) {
-            return hallHour.getDiningHall().contains(items[1].trim());
+            return hallHour.getDiningHall().contains(items[1].replace("Hall", "").trim());
         }
         return hallHour.getDiningHall().contains(selectedDiningHall.trim());
     }
@@ -322,5 +336,36 @@ public class PlaceholderFragment extends Fragment {
     public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
         Set<Object> seen = ConcurrentHashMap.newKeySet();
         return t -> seen.add(keyExtractor.apply(t));
+    }
+
+    /**
+     * The helper functionality to update waiting line, thumb up, thumb down information
+     * @throws InterruptedException
+     */
+    private void setUpSchedule() throws InterruptedException {
+        ScheduledExecutorService ses = Executors.newScheduledThreadPool(1);
+
+        Runnable task1 = () -> {
+            // TODO: Add logic here
+            RestClient client = new RestClient();
+            try {
+                System.out.println("Updating waiting line...");
+                if (MainActivity.USE_REMOTE_DATA) {
+                    client.updateAllFoodItemWaitingLine();
+                }
+                foodItems
+                        .stream()
+                        .filter(foodItem -> foodItem.getWaitingLine() > 0)
+                        .forEach(
+                                FoodItem -> {
+                                    FoodItem.setWaitingLine(FoodItem.getWaitingLine() -1);
+                                });
+            } catch (ExecutionException | InterruptedException | TimeoutException e) {
+                e.printStackTrace();
+            }
+        };
+
+        // init Delay = 5, repeat the task every 1 minute
+        ScheduledFuture<?> scheduledFuture = ses.scheduleAtFixedRate(task1, 5, 60, TimeUnit.SECONDS);
     }
 }

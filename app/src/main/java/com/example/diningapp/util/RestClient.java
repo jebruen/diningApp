@@ -24,6 +24,8 @@ public class RestClient {
     public static final String UPDATE_FOOD_ITEM_WAITING_LINE_URL =  HOST + "FoodItemsWaitingLine?foodName=%s&waitingLine=%s";
     public static final String UPDATE_FOOD_ITEM_THUMB_UP_URL     =  HOST + "FoodItemsThumbUp?foodName=%s&thumbUpCount=%s";
     public static final String UPDATE_FOOD_ITEM_THUMB_DOWN_URL   =  HOST + "FoodItemsThumbDown?foodName=%s&thumbDownCount=%s";
+    public static final String UPDATE_FOOD_ITEM_LABEL_URL        =  HOST + "FoodItemsLabel?foodName=%s&label=%s";
+    public static final String UPDATE_ALL_FOOD_ITEM_LABEL_URL    =  HOST + "AllFoodItemsWaitingLine";
 
     /**
      * FIXME: Should replace with AsycnTask?
@@ -49,12 +51,20 @@ public class RestClient {
         return request(String.format(UPDATE_FOOD_ITEM_WAITING_LINE_URL, foodItemName, updatedValue));
     }
 
+    public Optional<String> updateAllFoodItemWaitingLine () throws ExecutionException, InterruptedException, TimeoutException {
+        return request(UPDATE_ALL_FOOD_ITEM_LABEL_URL);
+    }
+
     public Optional<String> updateFoodItemThumbUp(String foodItemName, int updatedValue) throws ExecutionException, InterruptedException, TimeoutException {
         return request(String.format(UPDATE_FOOD_ITEM_THUMB_UP_URL, foodItemName, updatedValue));
     }
 
     public Optional<String> updateFoodItemThumbDown (String foodItemName, int updatedValue) throws ExecutionException, InterruptedException, TimeoutException {
         return request(String.format(UPDATE_FOOD_ITEM_THUMB_DOWN_URL, foodItemName, updatedValue));
+    }
+
+    public Optional<String> updateFoodItemLabels (String foodItemName, String updatedValue) throws ExecutionException, InterruptedException, TimeoutException {
+        return request(String.format(UPDATE_FOOD_ITEM_LABEL_URL, foodItemName, updatedValue));
     }
 
 

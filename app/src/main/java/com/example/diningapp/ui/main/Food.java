@@ -1,7 +1,6 @@
 package com.example.diningapp.ui.main;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,25 +8,21 @@ import android.view.ViewGroup;
 
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager.widget.ViewPager;
 
 import com.example.diningapp.DietrickActivity;
 import com.example.diningapp.JohnstonActivity;
-import com.example.diningapp.MainActivity;
 import com.example.diningapp.OwensActivity;
 import com.example.diningapp.R;
 import com.example.diningapp.SquiresActivity;
 import com.example.diningapp.TurnerActivity;
-import com.example.diningapp.databinding.ActivityMainBinding;
 
 
 public class Food extends Fragment {
     public Food() {
 
     }
-    private ActivityMainBinding binding;
-    private PageViewModel         pageViewModel;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstaceState) {
         View view = inflater.inflate(R.layout.food_fragment, container, false);
@@ -35,7 +30,9 @@ public class Food extends Fragment {
         dietrick.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                openDietrickActivity();
+                ViewPager viewPager = (ViewPager) view.getRootView().findViewById(R.id.view_pager);
+                PlaceholderFragment.currentDiningHall = "Dietrick";
+                viewPager.setCurrentItem(2);
             }
         });
 
@@ -75,7 +72,9 @@ public class Food extends Fragment {
         johnston.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                openJohnstonActivity();
+                ViewPager viewPager = (ViewPager) view.getRootView().findViewById(R.id.view_pager);
+                PlaceholderFragment.currentDiningHall = "Johnston";
+                viewPager.setCurrentItem(2);
             }
         });
         return view;

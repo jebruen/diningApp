@@ -15,17 +15,20 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.example.diningapp.databinding.ActivityMainBinding;
 import com.example.diningapp.ui.main.SectionsPagerAdapter;
+import com.example.diningapp.util.RestClient;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final boolean USE_REMOTE_DATA = false;
+    public static final boolean USE_REMOTE_DATA = true;
 
     private ActivityMainBinding binding;
     private AlertDialog dialog;
@@ -105,18 +108,5 @@ public class MainActivity extends AppCompatActivity {
 //        layout.addView(view);
 //    }
 
-    /**
-     * The helper functionality to update waiting line, thumb up, thumb down information
-     * @throws InterruptedException
-     */
-    private void setUpSchedule() throws InterruptedException {
-        ScheduledExecutorService ses = Executors.newScheduledThreadPool(1);
 
-        Runnable task1 = () -> {
-            // TODO: Add logic here
-        };
-
-        // init Delay = 5, repeat the task every 1 minute
-        ScheduledFuture<?> scheduledFuture = ses.scheduleAtFixedRate(task1, 5, 1, TimeUnit.MINUTES);
-    }
 }

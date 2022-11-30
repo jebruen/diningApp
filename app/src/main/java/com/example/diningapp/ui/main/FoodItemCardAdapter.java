@@ -22,12 +22,14 @@ import com.example.diningapp.R;
 import com.example.diningapp.util.FoodItem;
 import com.example.diningapp.util.RestClient;
 
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapter.ViewHolder>  {
 
@@ -58,12 +60,31 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
     public void onBindViewHolder(@NonNull FoodItemCardAdapter.ViewHolder holder, int position) {
         // to set data to textview and imageview of each card layout
         FoodItem foodItem = foodItemArrayList.get(position);
-        holder.foodItemName .setText(foodItem.getName());
-        holder.thumbUpText  .setText(String.valueOf(foodItem.getThumbUpCount()));
-        holder.thumbDownText.setText(String.valueOf(foodItem.getThumbDownCount()));
-        holder.hourglassText.setText(String.valueOf(foodItem.getWaitingLine()));
-        holder.detailView.setTooltipText(foodItem.getDescription());
+        holder.foodItemName  .setText(foodItem.getName());
+        holder.thumbUpText   .setText(String.valueOf(foodItem.getThumbUpCount()));
+        holder.thumbDownText .setText(String.valueOf(foodItem.getThumbDownCount()));
+        holder.hourglassText .setText(String.valueOf(foodItem.getWaitingLine()));
+        holder.detailView    .setTooltipText(foodItem.getDescription());
         TooltipCompat.setTooltipText(holder.detailView, foodItem.getDescription());
+
+        List<String> labels =
+                Arrays.stream(foodItem.getLabel().split(";")).distinct()
+                        .filter(StringUtils::isNotBlank)
+                        .collect(Collectors.toList());
+        for (String label: labels) {
+            addLabelToView(holder.tableRow, label);
+        }
+    }
+
+    public void addLabelToView(TableRow tableRow, String label) {
+        TableRow.LayoutParams layoutParams=new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT);
+        TextView textView1 = new TextView(tableRow.getContext());
+        layoutParams.setMargins(10, 0, 10, 10);
+        textView1.setText(label);
+        textView1.setBackgroundColor(ContextCompat.getColor(tableRow.getRootView().getContext(), R.color.very_light_gray)); // hex color 0xAARRGGBB
+        textView1.setPadding(20, 10, 20, 10);
+        textView1.setLayoutParams(layoutParams);
+        tableRow.addView(textView1, 0);
     }
 
     @Override
@@ -94,14 +115,14 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
 
             hourglassView = itemView.findViewById(R.id.hourglass_view);
             hourglassText = itemView.findViewById(R.id.hourglass_text);
-            foodItemName = itemView.findViewById(R.id.food_item_name);
-            thumbUpText = itemView.findViewById(R.id.thumb_up_text);
+            foodItemName  = itemView.findViewById(R.id.food_item_name);
+            thumbUpText   = itemView.findViewById(R.id.thumb_up_text);
             thumbDownText = itemView.findViewById(R.id.thumb_down_text);
             thumbDownView = itemView.findViewById(R.id.thumb_down_view);
-            thumbUpView = itemView.findViewById(R.id.thumb_up_view);
-            addLabelView = itemView.findViewById(R.id.add_label);
-            detailView = itemView.findViewById(R.id.detail_view);
-            tableRow = itemView.findViewById(R.id.label_row);
+            thumbUpView   = itemView.findViewById(R.id.thumb_up_view);
+            addLabelView  = itemView.findViewById(R.id.add_label);
+            detailView    = itemView.findViewById(R.id.detail_view);
+            tableRow      = itemView.findViewById(R.id.label_row);
 
             hourglassView.setOnClickListener(view -> {
                 updateFoodItem(hourglassText, FoodItemUpdateType.UPDATE_WAITING_LINE);
@@ -109,7 +130,6 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
 
             thumbUpView.setOnClickListener(view -> {
                 updateFoodItem(thumbUpText, FoodItemUpdateType.UPDATE_LIKE);
-
             });
 
             thumbDownView.setOnClickListener(view -> {
@@ -126,7 +146,7 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
             detailView.setOnClickListener(view -> {
                 AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
                 builder.setTitle("Detail");
-                builder.setMessage(detailView.getTooltipText());
+                builder.setMessage(StringUtils.isNotBlank(detailView.getTooltipText()) ? detailView.getTooltipText() : "No Detailed Information");
                 builder.show();
             });
         }
@@ -134,6 +154,7 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
         private void updateFoodItem(TextView textView, FoodItemUpdateType type) {
             int updatedData = Integer.parseInt(textView.getText().toString());
             updatedData++;
+            Toast.makeText(textView.getContext().getApplicationContext(), "Update Successfully", Toast.LENGTH_SHORT).show();
             try {
                 Optional<String> response;
                 // Update remote database
@@ -178,12 +199,16 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
 
         @Override
         public boolean onMenuItemClick(MenuItem menuItem) {
-            Toast.makeText(this.itemView.getRootView().getContext().getApplicationContext(), "Selected Item: " +menuItem.getTitle(), Toast.LENGTH_SHORT).show();
-            addFoodItemLabel(menuItem.getTitle().toString(), this.itemView);
+            try {
+                 addFoodItemLabel(foodItemName.getText().toString(), menuItem.getTitle().toString(), this.itemView);
+
+            } catch (ExecutionException | TimeoutException | InterruptedException e) {
+                e.printStackTrace();
+            }
             return true;
         }
 
-        private void addFoodItemLabel(String label, View view){
+        private void addFoodItemLabel(String foodItem, String label, View view) throws ExecutionException, InterruptedException, TimeoutException {
             TableRow.LayoutParams layoutParams=new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT);
             TextView textView1 = new TextView(view.getContext());
             layoutParams.setMargins(10, 0, 10, 10);
@@ -191,10 +216,22 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
             textView1.setBackgroundColor(ContextCompat.getColor(this.itemView.getContext(), R.color.very_light_gray)); // hex color 0xAARRGGBB
             textView1.setPadding(20, 10, 20, 10);
             textView1.setLayoutParams(layoutParams);
-            tableRow.addView(textView1, 0);
+            Optional<String> response;
+            // Update remote database
+            if (MainActivity.USE_REMOTE_DATA) {
+                response = client.updateFoodItemLabels(foodItem, label);
+                if (response.isPresent()) {
+                    // Update local data
+                    tableRow.addView(textView1, 0);
+                    Toast.makeText(this.itemView.getRootView().getContext().getApplicationContext(), "Added Label: " + label, Toast.LENGTH_SHORT).show();
+                }
+            }
+            else {
+                client.updateFoodItemLabels(foodItem, label);
+                tableRow.addView(textView1, 0);
+            }
         }
     }
-
 
     public void toast(String text) {
         Toast.makeText(context, text, Toast.LENGTH_SHORT).show();

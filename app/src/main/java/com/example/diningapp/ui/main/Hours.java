@@ -1,4 +1,4 @@
-package com.example.diningapp;
+package com.example.diningapp.ui.main;
 
 import static com.example.diningapp.ui.main.PlaceholderFragment.HOUR_JSON_FILE;
 
@@ -11,10 +11,9 @@ import android.widget.SimpleAdapter;
 
 import androidx.fragment.app.Fragment;
 
-import com.example.diningapp.databinding.FragmentHoursBinding;
-import com.example.diningapp.databinding.FragmentMainBinding;
+import com.example.diningapp.MainActivity;
+import com.example.diningapp.R;
 import com.example.diningapp.util.DiningHallHour;
-import com.example.diningapp.util.FoodItem;
 import com.example.diningapp.util.RestClient;
 import com.example.diningapp.util.VTDiningScrapingUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -29,22 +28,19 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
-public class Home extends Fragment {
-    private FragmentHoursBinding binding;
-    private static List<DiningHallHour> hallHourList = new ArrayList<>();
-    private        final RestClient client            = new RestClient();
-    private static final ObjectMapper mapper            = new ObjectMapper();
-    public Home() {
+public class Hours extends Fragment {
+    private static       List<DiningHallHour> hallHourList = new ArrayList<>();
+    private static final ObjectMapper         mapper       = new ObjectMapper();
+    private        final RestClient           client       = new RestClient();
 
+    public Hours() {
 
     }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstaceState) {
-        binding                           = FragmentHoursBinding.inflate(inflater, container, false);
-        View                 root         = binding.getRoot();
-        final ListView listView          = binding.hourList;
-
-
+              View     view      = inflater.inflate(R.layout.fragment_hours, container, false);
+        final ListView listView  = (ListView) view.findViewById(R.id.hour_list);
         try {
             if (MainActivity.USE_REMOTE_DATA) {
                 Optional<String> response = client.getHours();
@@ -64,8 +60,9 @@ public class Home extends Fragment {
             e.printStackTrace();
         }
 
-        List<Map<String, String>> hoursData = new ArrayList<>();
-        List<DiningHallHour> diningHallHours =  hallHourList;
+        List<Map<String, String>> hoursData       = new ArrayList<>();
+        List<DiningHallHour>      diningHallHours =  hallHourList;
+
         for(DiningHallHour diningHallHour: diningHallHours) {
             Map<String, String> map = new HashMap<>(2);
             map.put("First Line", diningHallHour.getDiningHall());
@@ -73,12 +70,12 @@ public class Home extends Fragment {
             hoursData.add(map);
         }
 
-        SimpleAdapter simpleAdapter2= new SimpleAdapter(this.getContext(), hoursData,
+        SimpleAdapter simpleAdapter = new SimpleAdapter(this.getContext(), hoursData,
                 android.R.layout.simple_list_item_2,
                 new String[] {"First Line", "Second Line"},
                 new int[] {android.R.id.text1, android.R.id.text2 });
 
-
-        return root;
+        listView.setAdapter(simpleAdapter);
+        return view;
     }
 }

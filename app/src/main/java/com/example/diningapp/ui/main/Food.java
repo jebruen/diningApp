@@ -16,12 +16,13 @@ import com.example.diningapp.OwensActivity;
 import com.example.diningapp.R;
 import com.example.diningapp.SquiresActivity;
 import com.example.diningapp.TurnerActivity;
+import com.example.diningapp.util.DiningHall;
 
 
 public class Food extends Fragment {
-    public Food() {
 
-    }
+
+    public Food() {}
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstaceState) {
@@ -31,7 +32,7 @@ public class Food extends Fragment {
             @Override
             public void onClick(View view) {
                 ViewPager viewPager = (ViewPager) view.getRootView().findViewById(R.id.view_pager);
-                PlaceholderFragment.currentDiningHall = "Dietrick";
+                PlaceholderFragment.currentDiningHall = DiningHall.DIETRICK;
                 viewPager.setCurrentItem(2);
             }
         });
@@ -41,7 +42,7 @@ public class Food extends Fragment {
             @Override
             public void onClick(View view) {
                 ViewPager viewPager = (ViewPager) view.getRootView().findViewById(R.id.view_pager);
-                PlaceholderFragment.currentDiningHall = "Turner Place";
+                PlaceholderFragment.currentDiningHall = DiningHall.TURNER_PLACE;
                 viewPager.setCurrentItem(2);
             }
         });
@@ -51,7 +52,7 @@ public class Food extends Fragment {
             @Override
             public void onClick(View view) {
                 ViewPager viewPager = (ViewPager) view.getRootView().findViewById(R.id.view_pager);
-                PlaceholderFragment.currentDiningHall = "Squires";
+                PlaceholderFragment.currentDiningHall = DiningHall.SQUIRES;
                 viewPager.setCurrentItem(2);
                 // openSquiresActivity();
             }
@@ -61,9 +62,8 @@ public class Food extends Fragment {
         owens.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 ViewPager viewPager = (ViewPager) view.getRootView().findViewById(R.id.view_pager);
-                PlaceholderFragment.currentDiningHall = "Owens";
+                PlaceholderFragment.currentDiningHall = DiningHall.OWENS;
                 viewPager.setCurrentItem(2);
             }
         });
@@ -73,7 +73,7 @@ public class Food extends Fragment {
             @Override
             public void onClick(View view) {
                 ViewPager viewPager = (ViewPager) view.getRootView().findViewById(R.id.view_pager);
-                PlaceholderFragment.currentDiningHall = "Johnston";
+                PlaceholderFragment.currentDiningHall = DiningHall.JOHNSON;
                 viewPager.setCurrentItem(2);
             }
         });

@@ -1,8 +1,9 @@
 package com.example.diningapp.ui.main;
 
+import  com.example.diningapp.util.LabelsUtils;
+
 import android.app.AlertDialog;
 import android.content.Context;
-import android.hardware.biometrics.BiometricManager;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -159,7 +160,7 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
         private void updateFoodItem(TextView textView, FoodItemUpdateType type) {
             int updatedData = Integer.parseInt(textView.getText().toString());
             updatedData++;
-            Toast.makeText(textView.getContext().getApplicationContext(), "Update Successfully", Toast.LENGTH_SHORT).show();
+            Toast.makeText(textView.getContext().getApplicationContext(), LabelsUtils.UPDATE_SUCCESSFUL_MESSAGE, Toast.LENGTH_SHORT).show();
             try {
                 Optional<String> response;
                 // Update remote database
@@ -205,40 +206,30 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
         @Override
         public boolean onMenuItemClick(MenuItem menuItem) {
             try {
-                String labelToUpdate = menuItem.getTitle().toString();
+                String labelToAdd = menuItem.getTitle().toString();
 
                 if (Objects.nonNull(tableRow.getTooltipText())) {
-                    List<String> labels =
-                            Arrays.stream(tableRow.getTooltipText().toString().split(";")).distinct()
+                    List<String> existingLabels =
+                            Arrays.stream(tableRow.getTooltipText().toString().split(";"))
+                                    .distinct()
                                     .filter(StringUtils::isNotBlank)
                                     .collect(Collectors.toList());
-                    if (labels.contains(labelToUpdate)) {
-                        Toast.makeText(tableRow.getContext().getApplicationContext(), "The label exist!", Toast.LENGTH_SHORT).show();
+
+                    if (existingLabels.contains(labelToAdd)) {
+                        Toast.makeText(tableRow.getContext().getApplicationContext(), LabelsUtils.EXIST_LABEL_MESSAGE, Toast.LENGTH_SHORT).show();
                     }
-                    else if ((labels.contains("Vegetarian") || labels.contains("Vegan") || labels.contains("vegetarian"))
-                            && StringUtils.equals(labelToUpdate, "Meat")) {
-                        Toast.makeText(tableRow.getContext().getApplicationContext(), "The label conflicts with existing labels!", Toast.LENGTH_SHORT).show();
-                    }
-                    else if (   (labels.contains("Meat")
-                            && StringUtils.equals(labelToUpdate, "Vegetarian") || StringUtils.equals(labelToUpdate, "Vegan") || StringUtils.equals(labelToUpdate, "vegetarian"))
-                    ) {
-                        Toast.makeText(tableRow.getContext().getApplicationContext(), "The label conflicts with existing labels!", Toast.LENGTH_SHORT).show();
-                    }
-                    else if ((labels.contains("Cold")) && StringUtils.equals(labelToUpdate, "Hot")) {
-                        Toast.makeText(tableRow.getContext().getApplicationContext(), "The label conflicts with existing labels!", Toast.LENGTH_SHORT).show();
-                    }
-                    else if ((labels.contains("Hot")) && StringUtils.equals(labelToUpdate, "Cold")) {
-                        Toast.makeText(tableRow.getContext().getApplicationContext(), "The label conflicts with existing labels!", Toast.LENGTH_SHORT).show();
+                    else if (LabelsUtils.ifConflict(existingLabels, labelToAdd)) {
+                        Toast.makeText(tableRow.getContext().getApplicationContext(), LabelsUtils.CONFLICT_LABEL_MESSAGE, Toast.LENGTH_SHORT).show();
                     }
                     else {
                         addFoodItemLabel(foodItemName.getText().toString(), menuItem.getTitle().toString(), this.itemView);
-                        labels.add(labelToUpdate);
-                        tableRow.setTooltipText(String.join(";", labels));
+                        existingLabels.add(labelToAdd);
+                        tableRow.setTooltipText(String.join(";", existingLabels));
                     }
                 }
                 else {
                     addFoodItemLabel(foodItemName.getText().toString(), menuItem.getTitle().toString(), this.itemView);
-                    tableRow.setTooltipText(labelToUpdate);
+                    tableRow.setTooltipText(labelToAdd);
                 }
 
             } catch (ExecutionException | TimeoutException | InterruptedException e) {
@@ -263,6 +254,9 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
                     // Update local data
                     tableRow.addView(textView1, 0);
                     Toast.makeText(this.itemView.getRootView().getContext().getApplicationContext(), "Added Label: " + label, Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    Toast.makeText(this.itemView.getRootView().getContext().getApplicationContext(), "System went wrong. Try Later. " + label, Toast.LENGTH_SHORT).show();
                 }
             }
             else {

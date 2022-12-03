@@ -46,7 +46,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_marginLeft="5dp"
-            android:src="@drawable/ic_thumb_up" />
+            android:src="@drawable/ic_thumb_up_empty" />
 
         <TextView
             android:id="@+id/thumb_up_text"
@@ -63,7 +63,7 @@
             android:gravity="right"
             android:layout_gravity="center_vertical"
             android:layout_marginLeft="5dp"
-            android:src="@drawable/ic_thumb_down" />
+            android:src="@drawable/ic_thumb_down_empty" />
 
         <TextView
             android:id="@+id/thumb_down_text"
@@ -80,7 +80,7 @@
             android:gravity="right"
             android:layout_gravity="center_vertical"
             android:layout_marginLeft="5dp"
-            android:src="@drawable/ic_detail" />
+            android:src="@drawable/ic_info" />
 
     </LinearLayout>
     <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -94,13 +94,6 @@
             android:layout_height="fill_parent"
             android:id="@+id/label_row"
             >
-
-<!--            <TextView-->
-<!--                android:text="Label 1"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:layout_column="1" />-->
-<!--            -->
             <ImageView
                 android:id="@+id/add_label"
                 android:layout_width="wrap_content"

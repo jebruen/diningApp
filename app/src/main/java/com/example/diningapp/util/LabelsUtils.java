@@ -10,7 +10,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class LabelsUtils {
-    public static final String CONFLICT_LABEL_MESSAGE    = "The label conflicts with existing existingLabels!";
+    public static final String CONFLICT_LABEL_MESSAGE    = "The label conflicts with existing existing Labels!";
     public static final String EXIST_LABEL_MESSAGE       = "The label exist!";
     public static final String UPDATE_SUCCESSFUL_MESSAGE = "Update Successfully!";
 
@@ -19,7 +19,7 @@ public class LabelsUtils {
                     "vegan", Collections.singletonList("meat"), 
             "vegetarian", Collections.singletonList("meat"),
             "meat", Arrays.asList("vegan", "vegetarian"),
-            "hot", Collections.singletonList("cold"),
+            "hot",  Collections.singletonList("cold"),
             "cold", Collections.singletonList("hot")
     );
     

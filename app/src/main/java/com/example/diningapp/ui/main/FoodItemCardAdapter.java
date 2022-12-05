@@ -1,7 +1,5 @@
 package com.example.diningapp.ui.main;
 
-import  com.example.diningapp.util.LabelsUtils;
-
 import android.app.AlertDialog;
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -22,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.diningapp.MainActivity;
 import com.example.diningapp.R;
 import com.example.diningapp.util.FoodItem;
+import com.example.diningapp.util.LabelsUtils;
 import com.example.diningapp.util.RestClient;
 
 import org.apache.commons.lang3.StringUtils;
@@ -30,6 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
@@ -67,15 +67,26 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
         holder.thumbUpText   .setText(String.valueOf(foodItem.getThumbUpCount()));
         holder.thumbDownText .setText(String.valueOf(foodItem.getThumbDownCount()));
         holder.hourglassText .setText(String.valueOf(foodItem.getWaitingLine()));
-        holder.detailView    .setTooltipText(foodItem.getDescription());
+        holder.detailView    .setTooltipText(
+                "Description: " +
+                        StringUtils.defaultIfBlank(foodItem.getDescription(), "No detailed information.")        + "\n" +
+                        "Amount: "      +
+                        StringUtils.defaultIfBlank(foodItem.getAmount(), "No detailed information.")        + "\n"
+
+        );
         holder.tableRow      .setTooltipText(foodItem.getLabel());
 
-        TooltipCompat.setTooltipText(holder.detailView, foodItem.getDescription());
+        TooltipCompat.setTooltipText(holder.detailView,
+                "Description: " +
+                        StringUtils.defaultIfBlank(foodItem.getDescription(), "No detailed information.")        + "\n" +
+                        "Amount: "      +
+                        StringUtils.defaultIfBlank(foodItem.getAmount(), "No detailed information.")        + "\n"
+        );
 
-        List<String> labels =
-                Arrays.stream(foodItem.getLabel().split(";")).distinct()
+        Set<String> labels =
+                Arrays.stream(foodItem.getLabel().split(";"))
                         .filter(StringUtils::isNotBlank)
-                        .collect(Collectors.toList());
+                        .collect(Collectors.toSet());
 
         for (String label: labels) {
             addLabelToView(holder.tableRow, label);
@@ -138,6 +149,8 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
                 updateFoodItem(thumbUpText, FoodItemUpdateType.UPDATE_LIKE);
             });
 
+            foodItemName.setTooltipText("NEUTRAL");
+
             thumbDownView.setOnClickListener(view -> {
                 updateFoodItem(thumbDownText, FoodItemUpdateType.UPDATE_DISLIKE);
             });
@@ -159,21 +172,26 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
 
         private void updateFoodItem(TextView textView, FoodItemUpdateType type) {
             int updatedData = Integer.parseInt(textView.getText().toString());
-            updatedData++;
-            Toast.makeText(textView.getContext().getApplicationContext(), LabelsUtils.UPDATE_SUCCESSFUL_MESSAGE, Toast.LENGTH_SHORT).show();
+
+            int thumbUpCount = Integer.parseInt(thumbUpText.getText().toString());
+            int thumbDownCount = Integer.parseInt(thumbDownText.getText().toString());
+            String foodItemNameValue = foodItemName.getText().toString();
+
+            //
             try {
                 Optional<String> response;
+                updatedData++;
                 // Update remote database
                 if (MainActivity.USE_REMOTE_DATA) {
                     switch (type) {
                         case UPDATE_WAITING_LINE:
-                            response = client.updateFoodItemWaitingLine(foodItemName.getText().toString(), updatedData);
+                            response = client.updateFoodItemWaitingLine(foodItemNameValue, updatedData);
                             break;
                         case UPDATE_LIKE:
-                            response = client.updateFoodItemThumbUp(foodItemName.getText().toString(), updatedData);
+                            response = client.updateFoodItemThumbUp(foodItemNameValue, updatedData);
                             break;
                         case UPDATE_DISLIKE:
-                            response = client.updateFoodItemThumbDown(foodItemName.getText().toString(), updatedData);
+                            response = client.updateFoodItemThumbDown(foodItemNameValue, updatedData);
                             break;
                         default:
                             throw new IllegalArgumentException();
@@ -190,12 +208,62 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
                     }
                 } else {
                     // Just update local data
-                    textView.setText(String.valueOf(updatedData));
-                    PlaceholderFragment.updateFoodItem(
-                            foodItemName.getText().toString(),
-                            type,
-                            updatedData
-                    );
+                    switch (type) {
+                        case UPDATE_LIKE:
+                            String likeStatus = foodItemName.getTooltipText().toString();
+                            switch (likeStatus) {
+                                case "NEUTRAL":
+                                    foodItemName.setTooltipText("LIKE");
+                                    thumbUpView.setBackgroundResource(R.drawable.ic_thumb_up);
+                                    thumbUpCount++;
+                                    thumbUpText.setText(String.valueOf(thumbUpCount));
+                                    PlaceholderFragment.updateFoodItem(
+                                            foodItemName.getText().toString(),
+                                            type,
+                                            updatedData
+                                    );
+                                    Toast.makeText(textView.getContext().getApplicationContext(), LabelsUtils.UPDATE_SUCCESSFUL_MESSAGE, Toast.LENGTH_SHORT).show();
+                                    break;
+                                case "LIKE":
+                                    Toast.makeText(itemView.getContext().getApplicationContext(),
+                                            "You already like this item.",
+                                            Toast.LENGTH_SHORT).show();
+                                    break;
+                                case "DISLIKE":
+                                    Toast.makeText(itemView.getContext().getApplicationContext(),
+                                            "You already dislike this item.",
+                                            Toast.LENGTH_SHORT).show();
+                                    break;
+                            }
+                            break;
+                        case UPDATE_DISLIKE:
+                            String dislikeStatus = foodItemName.getTooltipText().toString();
+                            switch (dislikeStatus) {
+                                case "NEUTRAL":
+                                    foodItemName.setTooltipText("DISLIKE");
+                                    thumbDownView.setBackgroundResource(R.drawable.ic_thumb_down);
+                                    thumbDownCount++;
+                                    thumbDownText.setText(String.valueOf(thumbDownCount));
+                                    PlaceholderFragment.updateFoodItem(
+                                            foodItemName.getText().toString(),
+                                            type,
+                                            updatedData
+                                    );
+                                    Toast.makeText(textView.getContext().getApplicationContext(), LabelsUtils.UPDATE_SUCCESSFUL_MESSAGE, Toast.LENGTH_SHORT).show();
+                                    break;
+                                case "LIKE":
+                                    Toast.makeText(itemView.getContext().getApplicationContext(),
+                                            "You already like this item.",
+                                            Toast.LENGTH_SHORT).show();
+                                    break;
+                                case "DISLIKE":
+                                    Toast.makeText(itemView.getContext().getApplicationContext(),
+                                            "You already dislike this item.",
+                                            Toast.LENGTH_SHORT).show();
+                                    break;
+                            }
+                            break;
+                    }
                 }
 
             } catch (Exception e) {

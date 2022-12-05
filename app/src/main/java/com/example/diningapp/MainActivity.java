@@ -3,7 +3,6 @@ package com.example.diningapp;
 import android.os.Bundle;
 import android.widget.LinearLayout;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
 
@@ -16,8 +15,7 @@ public class MainActivity extends AppCompatActivity {
     public static final boolean USE_REMOTE_DATA = false;
 
     private ActivityMainBinding binding;
-    private AlertDialog dialog;
-            LinearLayout layout;
+    private LinearLayout        layout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,8 +29,6 @@ public class MainActivity extends AppCompatActivity {
         viewPager.setAdapter(sectionsPagerAdapter);
         TabLayout tabs = binding.tabs;
         tabs.setupWithViewPager(viewPager);
-        //layout = binding.container;
         layout = findViewById(R.id.container);
-        // buildDialog();
     }
 }

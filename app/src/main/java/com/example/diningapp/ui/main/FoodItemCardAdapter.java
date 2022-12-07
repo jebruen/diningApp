@@ -227,6 +227,14 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
                 } else {
                     // Just update local data
                     switch (type) {
+                        case UPDATE_WAITING_LINE:
+                            textView.setText(String.valueOf(updatedData));
+                            PlaceholderFragment.updateFoodItem(
+                                    foodItemName.getText().toString(),
+                                    type,
+                                    updatedData
+                            );
+                            break;
                         case UPDATE_LIKE:
                             String likeStatus = foodItemName.getTooltipText().toString();
                             switch (Objects.requireNonNull(FoodItemStatus.getByStatus(likeStatus))) {

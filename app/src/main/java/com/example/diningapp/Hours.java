@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 
 import androidx.fragment.app.Fragment;
 
+@Deprecated
 public class Hours extends Fragment {
     public Hours() {
 

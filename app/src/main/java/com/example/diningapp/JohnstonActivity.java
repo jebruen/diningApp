@@ -12,8 +12,6 @@ import android.widget.SimpleAdapter;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-// import com.example.diningapp.database.DBHandler;
-import com.example.diningapp.databinding.ActivityDietrickBinding;
 import com.example.diningapp.databinding.ActivityJohnstonBinding;
 import com.example.diningapp.ui.main.PageViewModel;
 import com.example.diningapp.util.FoodItem;
@@ -37,14 +35,10 @@ public class JohnstonActivity extends AppCompatActivity {
     private ActivityJohnstonBinding binding;
 
     ObjectMapper mapper = new ObjectMapper();
-    private PageViewModel pageViewModel;
 
-    // private DBHandler           dbHandler;
     private static       List<FoodItem>       foodItems         = new ArrayList<>();
 
     private        final RestClient client            = new RestClient();
-    AlertDialog dialog;
-    LinearLayout layout;
 
 
     @Override
@@ -53,8 +47,6 @@ public class JohnstonActivity extends AppCompatActivity {
         setContentView(R.layout.activity_johnston);
 
         binding = ActivityJohnstonBinding.inflate(getLayoutInflater());
-
-        // dbHandler = new DBHandler(getApplicationContext());
         View                 root         = binding.getRoot();
 
         final ListView listView = binding.mobileList1;
@@ -81,8 +73,6 @@ public class JohnstonActivity extends AppCompatActivity {
         }
 
         List<Map<String, String>> menuData = new ArrayList<>();
-
-        // List<FoodItem> foodItems =  dbHandler.getAllFoodItem();
         Collections.reverse(foodItems);
         for(FoodItem foodItem: foodItems) {
             // D2 only
@@ -105,28 +95,4 @@ public class JohnstonActivity extends AppCompatActivity {
         setContentView(root);
 
     }
-
-    /**
-     * The helper function reading json file from assets
-     * @param context
-     * @param fileName the name of json file in assets
-     * @return a string of file
-     */
-    public String loadJSONFromAsset(Context context, String fileName) {
-        String json;
-        try {
-            InputStream is = context.getAssets().open(fileName);
-            int size = is.available();
-            byte[] buffer = new byte[size];
-            is.read(buffer);
-            is.close();
-            json = new String(buffer, "UTF-8");
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            return null;
-        }
-        return json;
-    }
-
-
 }

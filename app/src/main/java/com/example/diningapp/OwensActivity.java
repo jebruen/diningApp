@@ -12,10 +12,8 @@ import android.widget.SimpleAdapter;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.diningapp.databinding.ActivityDietrickBinding;
 import com.example.diningapp.databinding.ActivityOwensBinding;
 import com.example.diningapp.ui.main.PageViewModel;
-import com.example.diningapp.util.DiningHallHour;
 import com.example.diningapp.util.FoodItem;
 import com.example.diningapp.util.RestClient;
 import com.example.diningapp.util.VTDiningScrapingUtils;

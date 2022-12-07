@@ -1,5 +1,7 @@
 package com.example.diningapp.ui.main;
 
+import static com.example.diningapp.ui.main.FoodItemCardAdapter.FoodItemStatus.NEUTRAL;
+
 import android.app.AlertDialog;
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -43,6 +45,25 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
         UPDATE_DISLIKE,
         UPDATE_LIKE,
         UPDATE_WAITING_LINE
+    }
+
+    public enum FoodItemStatus {
+        LIKE    ("LIKE"),
+        DISLIKE ("DISLIKE"),
+        NEUTRAL ("NEUTRAL");
+
+        public final String status;
+
+        FoodItemStatus(String status) { this.status = status;}
+
+        public static FoodItemStatus getByStatus(String status) {
+            for (FoodItemStatus status1 :values()) {
+                if (status1.status.equals(status)) {
+                    return status1;
+                }
+            }
+            return null;
+        }
     }
 
     // Constructor
@@ -149,7 +170,7 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
                 updateFoodItem(thumbUpText, FoodItemUpdateType.UPDATE_LIKE);
             });
 
-            foodItemName.setTooltipText("NEUTRAL");
+            foodItemName.setTooltipText(NEUTRAL.status);
 
             thumbDownView.setOnClickListener(view -> {
                 updateFoodItem(thumbDownText, FoodItemUpdateType.UPDATE_DISLIKE);
@@ -172,9 +193,6 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
 
         private void updateFoodItem(TextView textView, FoodItemUpdateType type) {
             int updatedData = Integer.parseInt(textView.getText().toString());
-
-            int thumbUpCount = Integer.parseInt(thumbUpText.getText().toString());
-            int thumbDownCount = Integer.parseInt(thumbDownText.getText().toString());
             String foodItemNameValue = foodItemName.getText().toString();
 
             //
@@ -211,55 +229,37 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
                     switch (type) {
                         case UPDATE_LIKE:
                             String likeStatus = foodItemName.getTooltipText().toString();
-                            switch (likeStatus) {
-                                case "NEUTRAL":
-                                    foodItemName.setTooltipText("LIKE");
-                                    thumbUpView.setBackgroundResource(R.drawable.ic_thumb_up);
-                                    thumbUpCount++;
-                                    thumbUpText.setText(String.valueOf(thumbUpCount));
-                                    PlaceholderFragment.updateFoodItem(
-                                            foodItemName.getText().toString(),
-                                            type,
-                                            updatedData
-                                    );
+                            switch (Objects.requireNonNull(FoodItemStatus.getByStatus(likeStatus))) {
+                                case NEUTRAL:
+                                    addLike();
                                     Toast.makeText(textView.getContext().getApplicationContext(), LabelsUtils.UPDATE_SUCCESSFUL_MESSAGE, Toast.LENGTH_SHORT).show();
                                     break;
-                                case "LIKE":
-                                    Toast.makeText(itemView.getContext().getApplicationContext(),
-                                            "You already like this item.",
-                                            Toast.LENGTH_SHORT).show();
+                                case LIKE:
+                                    cancelLike();
                                     break;
-                                case "DISLIKE":
-                                    Toast.makeText(itemView.getContext().getApplicationContext(),
-                                            "You already dislike this item.",
-                                            Toast.LENGTH_SHORT).show();
+                                case DISLIKE:
+                                    cancelDisLike();
+                                    addLike();
+                                    break;
+                                default:
                                     break;
                             }
                             break;
                         case UPDATE_DISLIKE:
                             String dislikeStatus = foodItemName.getTooltipText().toString();
-                            switch (dislikeStatus) {
-                                case "NEUTRAL":
-                                    foodItemName.setTooltipText("DISLIKE");
-                                    thumbDownView.setBackgroundResource(R.drawable.ic_thumb_down);
-                                    thumbDownCount++;
-                                    thumbDownText.setText(String.valueOf(thumbDownCount));
-                                    PlaceholderFragment.updateFoodItem(
-                                            foodItemName.getText().toString(),
-                                            type,
-                                            updatedData
-                                    );
+                            switch (Objects.requireNonNull(FoodItemStatus.getByStatus(dislikeStatus))) {
+                                case NEUTRAL:
+                                    addDisLike();
                                     Toast.makeText(textView.getContext().getApplicationContext(), LabelsUtils.UPDATE_SUCCESSFUL_MESSAGE, Toast.LENGTH_SHORT).show();
                                     break;
-                                case "LIKE":
-                                    Toast.makeText(itemView.getContext().getApplicationContext(),
-                                            "You already like this item.",
-                                            Toast.LENGTH_SHORT).show();
+                                case LIKE:
+                                    cancelLike();
+                                    addDisLike();
                                     break;
-                                case "DISLIKE":
-                                    Toast.makeText(itemView.getContext().getApplicationContext(),
-                                            "You already dislike this item.",
-                                            Toast.LENGTH_SHORT).show();
+                                case DISLIKE:
+                                    cancelDisLike();
+                                    break;
+                                default:
                                     break;
                             }
                             break;
@@ -333,6 +333,59 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
                 Toast.makeText(this.itemView.getRootView().getContext().getApplicationContext(), "Added Label: " + label, Toast.LENGTH_SHORT).show();
             }
         }
+
+        private void addLike() {
+            int thumbUpCount = Integer.parseInt(thumbUpText.getText().toString());
+            thumbUpCount++;
+            thumbUpText.setText(String.valueOf(thumbUpCount));
+            foodItemName.setTooltipText(FoodItemStatus.LIKE.status);
+            thumbUpView.setBackgroundResource(R.drawable.ic_thumb_up);
+            PlaceholderFragment.updateFoodItem(
+                    foodItemName.getText().toString(),
+                    FoodItemUpdateType.UPDATE_LIKE,
+                    thumbUpCount
+            );
+        }
+
+        private void cancelLike() {
+            int thumbUpCount = Integer.parseInt(thumbUpText.getText().toString());
+            thumbUpCount--;
+            thumbUpText.setText(String.valueOf(thumbUpCount));
+            foodItemName.setTooltipText(NEUTRAL.status);
+            thumbUpView.setBackgroundResource(R.drawable.ic_thumb_up_empty);
+            PlaceholderFragment.updateFoodItem(
+                    foodItemName.getText().toString(),
+                    FoodItemUpdateType.UPDATE_LIKE,
+                    thumbUpCount
+            );
+        }
+
+        private void addDisLike() {
+            int thumbDownCount = Integer.parseInt(thumbDownText.getText().toString());
+            thumbDownCount++;
+            thumbDownText.setText(String.valueOf(thumbDownCount));
+            foodItemName.setTooltipText(FoodItemStatus.DISLIKE.status);
+            thumbDownView.setBackgroundResource(R.drawable.ic_thumb_down);
+            PlaceholderFragment.updateFoodItem(
+                    foodItemName.getText().toString(),
+                    FoodItemUpdateType.UPDATE_DISLIKE,
+                    thumbDownCount
+            );
+        }
+
+        private void cancelDisLike() {
+            int thumbDownCount = Integer.parseInt(thumbDownText.getText().toString());
+            thumbDownCount--;
+            thumbDownText.setText(String.valueOf(thumbDownCount));
+            foodItemName.setTooltipText(NEUTRAL.status);
+            thumbDownView.setBackgroundResource(R.drawable.ic_thumb_down_empty);
+            PlaceholderFragment.updateFoodItem(
+                    foodItemName.getText().toString(),
+                    FoodItemUpdateType.UPDATE_DISLIKE,
+                    thumbDownCount
+            );
+        }
+
     }
 
     public void toast(String text) {

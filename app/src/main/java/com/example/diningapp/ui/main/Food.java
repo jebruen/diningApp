@@ -21,7 +21,6 @@ import com.example.diningapp.util.DiningHall;
 
 public class Food extends Fragment {
 
-
     public Food() {}
 
     @Override

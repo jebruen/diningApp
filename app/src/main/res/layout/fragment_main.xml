@@ -35,4 +35,6 @@
        >
     </ListView>
 
+    <include layout="@layout/dining_hall_detail" android:id="@+id/dining_hall_layout"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

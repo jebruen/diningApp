@@ -1,5 +1,15 @@
 <resources>
-    <string name="app_name">diningApp</string>
-    <string name="tab_text_1">Hours</string>
-    <string name="tab_text_2">Menu</string>
+    <string name="app_name">VT Dining App</string>
+    <string name="tab_text_1">Home</string>
+    <string name="tab_text_2">Hours</string>
+    <string name="tab_text_3">Details</string>
+    <string-array name="operation_hours_spinner">
+        <item>Monday Hours</item>
+        <item>Tuesday Hours</item>
+        <item>Wednesday Hours</item>
+        <item>Thursday Hours</item>
+        <item>Friday Hours</item>
+        <item>Saturday Hours</item>
+        <item>Sunday Hours</item>
+    </string-array>
 </resources>

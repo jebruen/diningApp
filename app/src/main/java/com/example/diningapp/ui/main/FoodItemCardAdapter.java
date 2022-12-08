@@ -41,6 +41,12 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
     private final Context        context;
     private final List<FoodItem> foodItemArrayList;
 
+    // Constructor
+    public FoodItemCardAdapter(Context context, List<FoodItem> foodItemArrayList) {
+        this.context = context;
+        this.foodItemArrayList = foodItemArrayList;
+    }
+
     public enum FoodItemUpdateType {
         UPDATE_DISLIKE,
         UPDATE_LIKE,
@@ -66,12 +72,6 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
         }
     }
 
-    // Constructor
-    public FoodItemCardAdapter(Context context, List<FoodItem> foodItemArrayList) {
-        this.context = context;
-        this.foodItemArrayList = foodItemArrayList;
-    }
-
     @NonNull
     @Override
     public FoodItemCardAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -90,7 +90,7 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
         holder.hourglassText .setText(String.valueOf(foodItem.getWaitingLine()));
         holder.detailView    .setTooltipText(
                 "Description: " +
-                        StringUtils.defaultIfBlank(foodItem.getDescription(), "No detailed information.")        + "\n" +
+                        StringUtils.defaultIfBlank(foodItem.getDescription(), "No detailed information.")   + "\n" +
                         "Amount: "      +
                         StringUtils.defaultIfBlank(foodItem.getAmount(), "No detailed information.")        + "\n"
 
@@ -99,7 +99,7 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
 
         TooltipCompat.setTooltipText(holder.detailView,
                 "Description: " +
-                        StringUtils.defaultIfBlank(foodItem.getDescription(), "No detailed information.")        + "\n" +
+                        StringUtils.defaultIfBlank(foodItem.getDescription(), "No detailed information.")   + "\n" +
                         "Amount: "      +
                         StringUtils.defaultIfBlank(foodItem.getAmount(), "No detailed information.")        + "\n"
         );
@@ -112,17 +112,6 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
         for (String label: labels) {
             addLabelToView(holder.tableRow, label);
         }
-    }
-
-    public void addLabelToView(TableRow tableRow, String label) {
-        TableRow.LayoutParams layoutParams=new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT);
-        TextView textView1 = new TextView(tableRow.getContext());
-        layoutParams.setMargins(10, 0, 10, 10);
-        textView1.setText(label);
-        textView1.setBackgroundColor(ContextCompat.getColor(tableRow.getRootView().getContext(), R.color.very_light_gray)); // hex color 0xAARRGGBB
-        textView1.setPadding(20, 10, 20, 10);
-        textView1.setLayoutParams(layoutParams);
-        tableRow.addView(textView1, 0);
     }
 
     @Override
@@ -191,94 +180,6 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
             });
         }
 
-        private void updateFoodItem(TextView textView, FoodItemUpdateType type) {
-            int updatedData = Integer.parseInt(textView.getText().toString());
-            String foodItemNameValue = foodItemName.getText().toString();
-
-            //
-            try {
-                Optional<String> response;
-                updatedData++;
-                // Update remote database
-                if (MainActivity.USE_REMOTE_DATA) {
-                    switch (type) {
-                        case UPDATE_WAITING_LINE:
-                            response = client.updateFoodItemWaitingLine(foodItemNameValue, updatedData);
-                            break;
-                        case UPDATE_LIKE:
-                            response = client.updateFoodItemThumbUp(foodItemNameValue, updatedData);
-                            break;
-                        case UPDATE_DISLIKE:
-                            response = client.updateFoodItemThumbDown(foodItemNameValue, updatedData);
-                            break;
-                        default:
-                            throw new IllegalArgumentException();
-                    }
-
-                    if (response.isPresent()) {
-                        // Update local data
-                        textView.setText(String.valueOf(updatedData));
-                        PlaceholderFragment.updateFoodItem(
-                                foodItemName.getText().toString(),
-                                type,
-                                updatedData
-                        );
-                    }
-                } else {
-                    // Just update local data
-                    switch (type) {
-                        case UPDATE_WAITING_LINE:
-                            textView.setText(String.valueOf(updatedData));
-                            PlaceholderFragment.updateFoodItem(
-                                    foodItemName.getText().toString(),
-                                    type,
-                                    updatedData
-                            );
-                            break;
-                        case UPDATE_LIKE:
-                            String likeStatus = foodItemName.getTooltipText().toString();
-                            switch (Objects.requireNonNull(FoodItemStatus.getByStatus(likeStatus))) {
-                                case NEUTRAL:
-                                    addLike();
-                                    Toast.makeText(textView.getContext().getApplicationContext(), LabelsUtils.UPDATE_SUCCESSFUL_MESSAGE, Toast.LENGTH_SHORT).show();
-                                    break;
-                                case LIKE:
-                                    cancelLike();
-                                    break;
-                                case DISLIKE:
-                                    cancelDisLike();
-                                    addLike();
-                                    break;
-                                default:
-                                    break;
-                            }
-                            break;
-                        case UPDATE_DISLIKE:
-                            String dislikeStatus = foodItemName.getTooltipText().toString();
-                            switch (Objects.requireNonNull(FoodItemStatus.getByStatus(dislikeStatus))) {
-                                case NEUTRAL:
-                                    addDisLike();
-                                    Toast.makeText(textView.getContext().getApplicationContext(), LabelsUtils.UPDATE_SUCCESSFUL_MESSAGE, Toast.LENGTH_SHORT).show();
-                                    break;
-                                case LIKE:
-                                    cancelLike();
-                                    addDisLike();
-                                    break;
-                                case DISLIKE:
-                                    cancelDisLike();
-                                    break;
-                                default:
-                                    break;
-                            }
-                            break;
-                    }
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
         @Override
         public boolean onMenuItemClick(MenuItem menuItem) {
             try {
@@ -332,13 +233,102 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
                     Toast.makeText(this.itemView.getRootView().getContext().getApplicationContext(), "Added Label: " + label, Toast.LENGTH_SHORT).show();
                 }
                 else {
-                    Toast.makeText(this.itemView.getRootView().getContext().getApplicationContext(), "System went wrong. Try Later. " + label, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this.itemView.getRootView().getContext().getApplicationContext(), "System went wrong. Try Later. ", Toast.LENGTH_SHORT).show();
                 }
             }
             else {
-                client.updateFoodItemLabels(foodItem, label);
                 tableRow.addView(textView1, 0);
                 Toast.makeText(this.itemView.getRootView().getContext().getApplicationContext(), "Added Label: " + label, Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        private void updateFoodItem(TextView textView, FoodItemUpdateType type) {
+            int updatedData = Integer.parseInt(textView.getText().toString());
+            String foodItemNameValue = foodItemName.getText().toString();
+
+            //
+            try {
+                Optional<String> response;
+                updatedData++;
+                // Update remote database
+                if (MainActivity.USE_REMOTE_DATA) {
+                    switch (type) {
+                        case UPDATE_WAITING_LINE:
+                            response = client.updateFoodItemWaitingLine(foodItemNameValue, updatedData);
+                            break;
+                        case UPDATE_LIKE:
+                            response = client.updateFoodItemThumbUp(foodItemNameValue, updatedData);
+                            break;
+                        case UPDATE_DISLIKE:
+                            response = client.updateFoodItemThumbDown(foodItemNameValue, updatedData);
+                            break;
+                        default:
+                            throw new IllegalArgumentException();
+                    }
+
+                    if (response.isPresent()) {
+                        updateLocalData(type, updatedData, textView);
+                    }
+                } else {
+                    updateLocalData(type, updatedData, textView);
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        private void updateLocalData(FoodItemUpdateType type, int updatedData, TextView textView) {
+            switch (type) {
+                case UPDATE_WAITING_LINE:
+                    textView.setText(String.valueOf(updatedData));
+                    PlaceholderFragment.updateFoodItem(
+                            foodItemName.getText().toString(),
+                            type,
+                            updatedData
+                    );
+                    Toast.makeText(textView.getContext().getApplicationContext(), LabelsUtils.UPDATE_SUCCESSFUL_MESSAGE, Toast.LENGTH_SHORT).show();
+                    break;
+                case UPDATE_LIKE:
+                    String likeStatus = foodItemName.getTooltipText().toString();
+                    switch (Objects.requireNonNull(FoodItemStatus.getByStatus(likeStatus))) {
+                        case NEUTRAL:
+                            addLike();
+                            Toast.makeText(textView.getContext().getApplicationContext(), LabelsUtils.UPDATE_SUCCESSFUL_MESSAGE, Toast.LENGTH_SHORT).show();
+                            break;
+                        case LIKE:
+                            cancelLike();
+                            Toast.makeText(textView.getContext().getApplicationContext(), LabelsUtils.UPDATE_SUCCESSFUL_MESSAGE, Toast.LENGTH_SHORT).show();
+                            break;
+                        case DISLIKE:
+                            cancelDisLike();
+                            addLike();
+                            Toast.makeText(textView.getContext().getApplicationContext(), LabelsUtils.UPDATE_SUCCESSFUL_MESSAGE, Toast.LENGTH_SHORT).show();
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case UPDATE_DISLIKE:
+                    String dislikeStatus = foodItemName.getTooltipText().toString();
+                    switch (Objects.requireNonNull(FoodItemStatus.getByStatus(dislikeStatus))) {
+                        case NEUTRAL:
+                            addDisLike();
+                            Toast.makeText(textView.getContext().getApplicationContext(), LabelsUtils.UPDATE_SUCCESSFUL_MESSAGE, Toast.LENGTH_SHORT).show();
+                            break;
+                        case LIKE:
+                            cancelLike();
+                            addDisLike();
+                            Toast.makeText(textView.getContext().getApplicationContext(), LabelsUtils.UPDATE_SUCCESSFUL_MESSAGE, Toast.LENGTH_SHORT).show();
+                            break;
+                        case DISLIKE:
+                            cancelDisLike();
+                            Toast.makeText(textView.getContext().getApplicationContext(), LabelsUtils.UPDATE_SUCCESSFUL_MESSAGE, Toast.LENGTH_SHORT).show();
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
             }
         }
 
@@ -396,7 +386,14 @@ public class FoodItemCardAdapter extends RecyclerView.Adapter<FoodItemCardAdapte
 
     }
 
-    public void toast(String text) {
-        Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
+    private void addLabelToView(TableRow tableRow, String label) {
+        TableRow.LayoutParams layoutParams=new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT);
+        TextView textView1 = new TextView(tableRow.getContext());
+        layoutParams.setMargins(10, 0, 10, 10);
+        textView1.setText(label);
+        textView1.setBackgroundColor(ContextCompat.getColor(tableRow.getRootView().getContext(), R.color.very_light_gray)); // hex color 0xAARRGGBB
+        textView1.setPadding(20, 10, 20, 10);
+        textView1.setLayoutParams(layoutParams);
+        tableRow.addView(textView1, 0);
     }
 }

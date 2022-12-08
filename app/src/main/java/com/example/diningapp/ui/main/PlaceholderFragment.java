@@ -40,6 +40,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -76,6 +77,7 @@ public class PlaceholderFragment extends Fragment {
     private static       List<String>         restaurantOptions     = new ArrayList<>();
     private static       List<String>         operationHoursOptions = new ArrayList<>();
     private static       List<String>         diningHallOptions     = new ArrayList<>();
+    private static       Optional<String>     selectedDiningHall;
     private        final RestClient           client                = new RestClient();
 
     private PageViewModel         pageViewModel;
@@ -117,7 +119,7 @@ public class PlaceholderFragment extends Fragment {
         final RecyclerView recyclerView      = binding.diningHallLayout.idFoodItems;
         final LinearLayout linearLayout      = binding.diningHallLayout.diningHallLinearLayout;
 
-        // Step 1: Fetch data from remote service or local data
+        // region - Step 1: Fetch data from remote service or local data
         try {
             if (MainActivity.USE_REMOTE_DATA) {
                 Optional<String> response = client.getFoodItems();
@@ -143,31 +145,16 @@ public class PlaceholderFragment extends Fragment {
         catch (IOException | InterruptedException | ExecutionException | TimeoutException e) {
             e.printStackTrace();
         }
+        //endregion
 
-        List<Map<String, String>> menuData = new ArrayList<>();
-        foodItems.sort(Comparator.comparing(FoodItem::getName));
-        foodItems = foodItems.stream().filter(distinctByKey(FoodItem::getName)).collect(Collectors.toList());
-        for(FoodItem foodItem: foodItems) {
-            Map<String, String> map = new HashMap<>(2);
-            map.put("First Line", foodItem.getName());
-            map.put("Second Line",foodItem.getDescription());
-            menuData.add(map);
-        }
-
-        LocalDateTime now = LocalDateTime.now();
-        SimpleAdapter menuAdapter = new SimpleAdapter(this.getContext(), menuData,
-                android.R.layout.simple_list_item_2,
-                new String[] {"First Line", "Second Line" },
-                new int[] {android.R.id.text1, android.R.id.text2 });
-
-        hintText.setText("Check the Menu of Your Favorite Food Shop at " + currentDiningHall.description);
+        // region - Step 2: Setting dinning hall displaying and options
         diningHallOptions = foodItems.stream()
                 .map(FoodItem::getDiningHall)
                 .filter(diningHall -> !StringUtils.equals(diningHall, "Dinning Hall"))
                 .distinct()
                 .collect(Collectors.toList());
 
-        Optional<String> selectedDiningHall = diningHallOptions
+        selectedDiningHall = diningHallOptions
                 .stream()
                 .filter(diningHall -> diningHall.contains(currentDiningHall.description))
                 .findFirst();
@@ -176,12 +163,15 @@ public class PlaceholderFragment extends Fragment {
             diningHallOptions.add(0, selectedDiningHall.get());
             diningHallOptions = diningHallOptions.stream().distinct().collect(Collectors.toList());
         }
-        restaurantOptions = foodItems.stream()
-                .filter(foodItem -> Objects.equals(foodItem.getDiningHall(), diningHallOptions.get(0)))
-                .map(FoodItem::getOtherInfo)
-                .distinct()
-                .collect(Collectors.toList());
 
+        ArrayAdapter<String> diningHallOptionsAdapter = new ArrayAdapter<>(this.getContext(), android.R.layout.simple_spinner_item, diningHallOptions);
+        diningHallOptionsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        // endregion
+
+        //region - Step 3: Setting Operation Hours text and dropdown
+        LocalDateTime now = LocalDateTime.now();
+        int todayDayOfWeek = now.getDayOfWeek().getValue();
         operationHoursOptions = hallHourList.stream()
                 .filter(diningHallHour -> hasDiningHallHours(diningHallHour, diningHallOptions.get(0)))
                 .map(diningHallHour -> diningHallHour.getDiningHall() + ": " + diningHallHour.getHours())
@@ -189,7 +179,6 @@ public class PlaceholderFragment extends Fragment {
                 .collect(Collectors.toList());
 
         hourTextView.setText(String.join("\n\n", operationHoursOptions));
-        int todayDayOfWeek = now.getDayOfWeek().getValue();
         hoursSpinner.setSelection(todayDayOfWeek -1);
         hourTextView.setOnClickListener(view -> {
             AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
@@ -198,11 +187,6 @@ public class PlaceholderFragment extends Fragment {
             builder.show();
         });
 
-        ArrayAdapter<String> restaurantAdapter = new ArrayAdapter<>(this.getContext(), android.R.layout.simple_spinner_item, restaurantOptions);
-        restaurantAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-        ArrayAdapter<String> diningHallOptionsAdapter = new ArrayAdapter<>(this.getContext(), android.R.layout.simple_spinner_item, diningHallOptions);
-        diningHallOptionsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         ArrayAdapter hourAdapter = ArrayAdapter.createFromResource(this.getContext(), R.array.operation_hours_spinner, R.layout.spinner_item);
         hoursSpinner.setAdapter(hourAdapter);
@@ -232,11 +216,53 @@ public class PlaceholderFragment extends Fragment {
             public void onNothingSelected(AdapterView<?> parent) {
             }
         });
+        //endregion
 
+        // Step 4: Setting the hint text
+        hintText.setText("Check the Menu of Your Favorite Food Shop at " + currentDiningHall.description);
+
+        // region - Step 5: setting restaurant options and adapter
+        restaurantOptions = foodItems.stream()
+                .filter(foodItem -> Objects.equals(foodItem.getDiningHall(), diningHallOptions.get(0)))
+                .map(FoodItem::getOtherInfo)
+                .distinct()
+                .collect(Collectors.toList());
+
+        ArrayAdapter<String> restaurantAdapter = new ArrayAdapter<>(this.getContext(), android.R.layout.simple_spinner_item, restaurantOptions);
+        restaurantAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        //endregion
+
+        // region - Step 6: Adding food item to the list and adaptor
+        List<Map<String, String>> foodItemMap = new ArrayList<>();
+        foodItems.sort(Comparator.comparing(FoodItem::getName));
+        foodItems = foodItems.stream().filter(distinctByKey(FoodItem::getName)).collect(Collectors.toList());
+        for(FoodItem foodItem: foodItems) {
+            Map<String, String> map = new HashMap<>(2);
+            map.put("First Line", foodItem.getName());
+            map.put("Second Line",foodItem.getDescription());
+            foodItemMap.add(map);
+        }
+
+        SimpleAdapter menuAdapter = new SimpleAdapter(this.getContext(), foodItemMap,
+                android.R.layout.simple_list_item_2,
+                new String[] {"First Line", "Second Line" },
+                new int[] {android.R.id.text1, android.R.id.text2 });
+        // endregion
+
+        // Step 7: setting up scheduler for availability reducing
+        try {
+            if (!IS_SCHEDULER_RUNNING) {
+                setUpSchedule();
+            }
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // Step 8: tabs changing setting
         pageViewModel.getText().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(@Nullable String s) {
-                System.out.println("switch tab " + s);
                 if (StringUtils.equals(s, "home")) {
                     listView.setAdapter(menuAdapter);
                     linearLayout.setVisibility(View.INVISIBLE);
@@ -253,21 +279,49 @@ public class PlaceholderFragment extends Fragment {
                     diningHallSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                         @Override
                         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                String selectedDiningHall = parent.getItemAtPosition(position).toString();
-                                restaurantOptions = foodItems.stream()
-                                        .filter(foodItem -> Objects.equals(foodItem.getDiningHall(), selectedDiningHall))
-                                        .map(FoodItem::getOtherInfo)
-                                        .distinct()
-                                        .collect(Collectors.toList());
-                                ArrayAdapter<String> updatedAdapter = new ArrayAdapter<>(
-                                        getContext(),
-                                        android.R.layout.simple_spinner_item,
-                                        restaurantOptions
-                                );
+                            String reselectedDiningHall = parent.getItemAtPosition(position).toString();
+                            restaurantOptions = foodItems.stream()
+                                    .filter(foodItem -> Objects.equals(foodItem.getDiningHall(), reselectedDiningHall))
+                                    .map(FoodItem::getOtherInfo)
+                                    .distinct()
+                                    .collect(Collectors.toList());
+                            ArrayAdapter<String> updatedAdapter = new ArrayAdapter<>(
+                                    getContext(),
+                                    android.R.layout.simple_spinner_item,
+                                    restaurantOptions
+                            );
+                            Optional<DiningHall> optionalDiningHall = Arrays.stream(DiningHall.values())
+                                    .filter(diningHall -> reselectedDiningHall.contains(diningHall.description))
+                                            .findAny();
+                            optionalDiningHall.ifPresent(diningHall -> currentDiningHall = diningHall);
+                            selectedDiningHall = diningHallOptions
+                                    .stream()
+                                    .filter(diningHall -> diningHall.contains(currentDiningHall.description))
+                                    .findFirst();
 
-                                updatedAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                                restaurantSpinner.setAdapter(updatedAdapter);
-                                setFoodItemListAdapter(recyclerView, foodItems);
+                            LocalDateTime selectedDay;
+                            if (now.getDayOfWeek().getValue() == (hoursSpinner.getSelectedItemPosition())) {
+                                selectedDay = now;
+                            }
+                            else {
+                                selectedDay = now.with(TemporalAdjusters.next(DayOfWeek.of(position + 1)));
+                            }
+                            String dateString = selectedDay.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                            operationHoursOptions = hallHourList.stream()
+                                    .filter(diningHallHour -> diningHallHour.getDate().equals(dateString))
+                                    .filter(diningHallHour -> hasDiningHallHours(diningHallHour, selectedDiningHall.get()))
+                                    .map(diningHallHour -> diningHallHour.getDiningHall() + ": " + diningHallHour.getHours())
+                                    .distinct()
+                                    .collect(Collectors.toList());
+
+                            hourTextView.setText(String.join("\n\n", operationHoursOptions));
+                            hoursSpinner.setSelection(todayDayOfWeek -1);
+
+                            hintText.setText("Check the Menu of Your Favorite Food Shop at " + currentDiningHall.description);
+
+                            updatedAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                            restaurantSpinner.setAdapter(updatedAdapter);
+                            setFoodItemListAdapter(recyclerView, foodItems);
                         }
                         @Override
                         public void onNothingSelected(AdapterView<?> parent) {
@@ -293,14 +347,6 @@ public class PlaceholderFragment extends Fragment {
             }
         });
 
-        try {
-            if (!IS_SCHEDULER_RUNNING) {
-                setUpSchedule();
-            }
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         return root;
     }
 
@@ -332,12 +378,7 @@ public class PlaceholderFragment extends Fragment {
 
     private void setFoodItemListAdapter(RecyclerView recyclerView, List<FoodItem> foodItems) {
         FoodItemCardAdapter foodItemCardAdapter = new FoodItemCardAdapter(this.getContext(), foodItems);
-
-        // below line is for setting a layout manager for our recycler view.
-        // here we are creating vertical list so we will provide orientation as vertical
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this.getContext(), LinearLayoutManager.VERTICAL, false);
-
-        // in below two lines we are setting layoutmanager and adapter to our recycler view.
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(foodItemCardAdapter);
     }
@@ -352,11 +393,10 @@ public class PlaceholderFragment extends Fragment {
         return hallHour.getDiningHall().contains(selectedDiningHall.trim());
     }
 
-    public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+    private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
         Set<Object> seen = ConcurrentHashMap.newKeySet();
         return t -> seen.add(keyExtractor.apply(t));
     }
-
     /**
      * The helper functionality to update waiting line, thumb up, thumb down information
      * Reducing waiting line availability every minute

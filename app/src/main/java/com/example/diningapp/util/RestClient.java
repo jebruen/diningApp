@@ -12,7 +12,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import okhttp3.Response;
 
 public class RestClient {
@@ -34,7 +33,7 @@ public class RestClient {
     public Optional<String> request(String url) throws InterruptedException, ExecutionException, TimeoutException {
         String json;
         ExecutorService executor = Executors.newFixedThreadPool(1);
-        Future<String> future = executor.submit(new Work(url));
+        Future<String> future = executor.submit(new Request(url));
         json = future.get(10, TimeUnit.SECONDS);
         return StringUtils.isNotBlank(json) ? Optional.of(json) : Optional.empty();
     }
@@ -68,17 +67,17 @@ public class RestClient {
     }
 
 
-    class Work implements Callable<String> {
+    class Request implements Callable<String> {
         private final String url;
         private  String result = "";
 
-        public Work(String url) {
+        public Request(String url) {
             this.url = url;
         }
 
         @Override
         public String call() {
-            Request request = new Request.Builder()
+            okhttp3.Request request = new okhttp3.Request.Builder()
                         .url(url)
                         .build();
 

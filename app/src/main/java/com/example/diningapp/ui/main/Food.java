@@ -18,7 +18,6 @@ import com.example.diningapp.SquiresActivity;
 import com.example.diningapp.TurnerActivity;
 import com.example.diningapp.util.DiningHall;
 
-
 public class Food extends Fragment {
 
     public Food() {}

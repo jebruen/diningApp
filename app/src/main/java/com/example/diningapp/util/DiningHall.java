@@ -5,7 +5,8 @@ public enum DiningHall {
     TURNER_PLACE ("Turner Place"),
     SQUIRES      ("Squires"),
     OWENS        ("Owens"),
-    JOHNSON      ("Johnson");
+    COCHRANE     ("Cochrane"),
+    JOHNSON      ("Johnston");
 
     public final String description;
 

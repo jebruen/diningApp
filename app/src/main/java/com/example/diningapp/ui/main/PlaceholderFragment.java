@@ -178,12 +178,24 @@ public class PlaceholderFragment extends Fragment {
                 .distinct()
                 .collect(Collectors.toList());
 
-        hourTextView.setText(String.join("\n\n", operationHoursOptions));
+        if (operationHoursOptions.size() > 0) {
+            hourTextView.setText(String.join("\n\n", operationHoursOptions));
+        }
+        else {
+            hourTextView.setText("Closed");
+        }
+
         hoursSpinner.setSelection(todayDayOfWeek -1);
         hourTextView.setOnClickListener(view -> {
             AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
             builder.setTitle(selectedDiningHall.get() + " - " + hoursSpinner.getSelectedItem().toString());
-            builder.setMessage(String.join("\n\n", operationHoursOptions));
+
+            if ((operationHoursOptions != null && operationHoursOptions.size() > 0)) {
+                builder.setMessage(String.join("\n\n", operationHoursOptions));
+            }
+            else {
+                builder.setMessage("Closed");
+            }
             builder.show();
         });
 
@@ -304,7 +316,7 @@ public class PlaceholderFragment extends Fragment {
                                 selectedDay = now;
                             }
                             else {
-                                selectedDay = now.with(TemporalAdjusters.next(DayOfWeek.of(position + 1)));
+                                selectedDay = now.with(TemporalAdjusters.next(DayOfWeek.of(hoursSpinner.getSelectedItemPosition() + 1)));
                             }
                             String dateString = selectedDay.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                             operationHoursOptions = hallHourList.stream()
@@ -314,7 +326,12 @@ public class PlaceholderFragment extends Fragment {
                                     .distinct()
                                     .collect(Collectors.toList());
 
-                            hourTextView.setText(String.join("\n\n", operationHoursOptions));
+                            if (operationHoursOptions.size() > 0) {
+                                hourTextView.setText(String.join("\n\n", operationHoursOptions));
+                            }
+                            else {
+                                hourTextView.setText("Closed");
+                            }
                             hoursSpinner.setSelection(todayDayOfWeek -1);
 
                             hintText.setText("Check the Menu of Your Favorite Food Shop at " + currentDiningHall.description);

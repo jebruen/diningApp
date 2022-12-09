@@ -34,7 +34,7 @@ public class RestClient {
         String json;
         ExecutorService executor = Executors.newFixedThreadPool(1);
         Future<String> future = executor.submit(new Request(url));
-        json = future.get(10, TimeUnit.SECONDS);
+        json = future.get(30, TimeUnit.SECONDS);
         return StringUtils.isNotBlank(json) ? Optional.of(json) : Optional.empty();
     }
 
